@@ -35,7 +35,6 @@
   socket.on('connectToRoomResponse', response => {
     if(response.status === 200){
       playerData = response.playerData;
-      console.log(playerData);
       localStorage.setItem('playerData', JSON.stringify(response.playerData) );
 
       roomIsLoading = false;
@@ -110,6 +109,7 @@
   }
 
   .main-window {
+    min-height: 450px;
     flex-grow: 2!important;
   }
 
@@ -151,7 +151,7 @@
     }
 
     .app-window {
-      height: none;
+      height: auto;
     }
   }
 

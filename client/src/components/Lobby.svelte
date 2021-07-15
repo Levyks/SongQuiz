@@ -86,14 +86,14 @@
       <label for="playlist-input">{$_("lobby.inputLabels.playlist")}</label>
       <div class="input-group mb-1">
 
-        <span class="form-control" readonly>
+        <span class="form-control playlist-label" readonly>
         {#if roomState.playlist}
           {#if roomState.playlistTooSmall}
-            <a class="playlist-label text-danger" href={roomState.playlist.info.href} target="_blank">{roomState.playlist.info.name} | {$_("lobby.playlistMessages.validSongs", { values: {number: roomState.playlist.info.valid_songs} })} | {$_("lobby.playlistMessages.tooSmall")} </a>
+            <a class="text-danger" href={roomState.playlist.info.href} target="_blank">{roomState.playlist.info.name} | {$_("lobby.playlistMessages.validSongs", { values: {number: roomState.playlist.info.valid_songs} })} | {$_("lobby.playlistMessages.tooSmall")} </a>
           {:else if roomState.playlist.status == 200}
-            <a class="playlist-label" href={roomState.playlist.info.href} target="_blank">{roomState.playlist.info.name} | {$_("lobby.playlistMessages.validSongs", { values: {number: roomState.playlist.info.valid_songs} })}</a>
+            <a href={roomState.playlist.info.href} target="_blank">{roomState.playlist.info.name} | {$_("lobby.playlistMessages.validSongs", { values: {number: roomState.playlist.info.valid_songs} })}</a>
           {:else}
-            <span class="playlist-label text-danger">{$_("lobby.playlistMessages.error", { values: {error: roomState.playlist.message} })}</span>
+            <span class="text-danger">{$_("lobby.playlistMessages.error", { values: {error: roomState.playlist.message} })}</span>
           {/if}
         {:else}
           {$_("lobby.playlistMessages.notSet")}
@@ -119,14 +119,20 @@
     
     <div class="row">
       <div class="col">
+        <label for="number-of-rounds-input">{$_("lobby.inputLabels.numberOfRounds")}</label>
+      </div>
+      <div class="col">
+        <label for="time-per-round-input">{$_("lobby.inputLabels.timePerRound")}</label>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
         <div class="form-group">
-          <label for="number-of-rounds-input">{$_("lobby.inputLabels.numberOfRounds")}</label>
           <input type="number" min="1" max="30" on:blur={handleNumberOfRoundsBlur} bind:value={numberOfRounds} readonly={!playerData.isLeader} class="form-control" id="number-of-rounds-input">
         </div>
       </div>
       <div class="col">
         <div class="form-group">
-          <label for="time-per-round-input">{$_("lobby.inputLabels.timePerRound")}</label>
           <input type="number" min="5" on:blur={handleTimePerRoundBlur} bind:value={timePerRound} readonly={!playerData.isLeader} class="form-control" id="time-per-round-input">
         </div>
       </div>
@@ -172,6 +178,6 @@
   }
 
   .playlist-label {
-    height: none;
+    height: auto;
   }
 </style>

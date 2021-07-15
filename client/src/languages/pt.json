@@ -53,7 +53,8 @@
         "noOneCorrect": "Ninguém acertou :(",
         "nextRoundIn": "Próximo round começando em {seconds}",
         "finalResultsIn": "Resultados finais em {seconds}"
-      }
+      },
+      "clickToPlaySong": "Clique para tocar a música"
     }
   },
 

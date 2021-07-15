@@ -126,13 +126,7 @@ class Room {
         if(Player.isTheSame(data.playerData, this.players[data.playerData.username])) {
           player = this.players[data.playerData.username];
 
-          this.log(`Player ${player.username} reconnected`)
-
-          if(player.leaveRoomTimeout){
-            this.log(`Schedule kick for ${player.username} canceled`);
-            clearTimeout(player.leaveRoomTimeout);
-            player.leaveRoomTimeout = false;
-          }
+          this.log(`Player ${player.username} reconnected`);
 
         //If not, refuse it
         } else {
@@ -145,6 +139,12 @@ class Room {
       } else {
         player = new Player(data.playerData.username, this);
         this.log(`Player ${player.username} connected`);
+      }
+
+      if(player.leaveRoomTimeout){
+        this.log(`Schedule kick for ${player.username} canceled`);
+        clearTimeout(player.leaveRoomTimeout);
+        player.leaveRoomTimeout = false;
       }
 
       if(this.deletionTimeOut) {

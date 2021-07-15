@@ -15,6 +15,8 @@
 
   let showRoundResults = false;
 
+  let showButtonToInteract = false;
+
   let timeRemaining = 0;
 
   let nextRoundStartsIn;
@@ -36,9 +38,7 @@
         showRoundResults = false;
 
         if(audioElement){
-          audioElement.src = state.game.currentRound.trackToPlay;
-          audioElement.volume = volume/100;
-          audioElement.play();
+          startPlaying();
         } else {
           songQueuedToPlay = true;
         }
@@ -88,9 +88,22 @@
     }
   }
 
+  function startPlaying() {
+    audioElement.src = roomState.game.currentRound.trackToPlay;
+    audioElement.volume = volume/100;
+
+    audioElement.play().then(() => {
+      showButtonToInteract = false;
+    }).catch(err => {
+      if(err.name == "NotAllowedError") {
+        showButtonToInteract = true;
+      }
+    });
+  }
+
   onMount(() => {
 		if(songQueuedToPlay){
-      audioElement.play();
+      startPlaying();
       songQueuedToPlay = false;
     }
 	});
@@ -145,20 +158,24 @@
 
     <div class="game-main">
       <div class="choices-wrapper">
-      {#each choicesButtonsData as choiceButtonText, i}
-        <button 
-          class={`btn choice-btn ${
-            i === correctChoice ? 'btn-success' : 
-            i === wrongChoice ? 'btn-danger' : 
-            i === choosenChoice ? 'btn-secondary' : 
-            'btn-light'}`} 
-            
-          value={i} 
-          on:click={handleChoiceClick}
-          disabled={!!choosenChoice || roomState.game.currentRound.currentPhase == 'results'}>
-            {choiceButtonText}
-          </button>
-      {/each}
+        {#if showButtonToInteract}
+          <button class={`btn choice-btn`} on:click={startPlaying}>{$_("game.round.clickToPlaySong")}</button>
+        {:else}
+          {#each choicesButtonsData as choiceButtonText, i}
+            <button 
+              class={`btn choice-btn ${
+                i === correctChoice ? 'btn-success' : 
+                i === wrongChoice ? 'btn-danger' : 
+                i === choosenChoice ? 'btn-secondary' : 
+                'btn-light'}`} 
+                
+              value={i} 
+              on:click={handleChoiceClick}
+              disabled={!!choosenChoice || roomState.game.currentRound.currentPhase == 'results'}>
+                {choiceButtonText}
+              </button>
+          {/each}
+        {/if}
       </div>
     </div>
 
