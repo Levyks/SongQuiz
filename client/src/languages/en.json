@@ -8,7 +8,8 @@
     "createRoom": "Create room",
     "or": "or",
     "roomCode": "Room code",
-    "joinRoom": "Join room"
+    "joinRoom": "Join room",
+    "createRoomError": "Something went wrong, please try again later"
   },
 
   "room": {

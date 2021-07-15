@@ -9,8 +9,6 @@
 	socket.disconnect();
 	socket.connect();
 
-	const dispatch = createEventDispatcher();
-
 	let roomCodeRequired = true;
 
   let username;
@@ -40,12 +38,15 @@
 
   function createRoom() {
     socket.emit('initialSetup', { action: 'createRoom', username });
-    socket.on('createRoomResponse', response => {
-      if(response.status === 200){
-				joinRoom(response)
-      }
-    });
   }
+
+	socket.on('createRoomResponse', response => {
+		if(response.status === 200){
+			joinRoom(response)
+		} else {
+			window.alert($_('createOrJoinGame.createRoomError'));
+		}
+  });
 
 	function joinRoom(data) {
 		localStorage.setItem('lastRoomJoined', data.roomCode);

@@ -6,34 +6,43 @@ const TIME_BEFORE_DELETING_ROOM = 30
 const DEFAULT_NUMBER_OF_ROUNDS = 10;
 const DEFAULT_TIME_PER_ROUND = 15;
 const NUMBER_OF_CHOICES = 4;
+const MAX_NUM_OF_TRIES_GEN_CODE = 10000;
 
 class Room {
   static rooms = {}
 
   constructor(socket, username) {
-    this.deletionTimeOut = false;
-    this.players = {};
-    this.currentlyConnectedPlayers = 0;
+    try{
+      this.deletionTimeOut = false;
+      this.players = {};
+      this.currentlyConnectedPlayers = 0;
 
-    this.numberOfRounds = DEFAULT_NUMBER_OF_ROUNDS;
-    this.timePerRound = DEFAULT_TIME_PER_ROUND;
-    this.choicesPerRound = NUMBER_OF_CHOICES;
+      this.numberOfRounds = DEFAULT_NUMBER_OF_ROUNDS;
+      this.timePerRound = DEFAULT_TIME_PER_ROUND;
+      this.choicesPerRound = NUMBER_OF_CHOICES;
 
-    this.code = Room.getUniqueRoomCode(); 
-    this.ioChannel = Room.io.in(this.code);
+      this.code = Room.getUniqueRoomCode(); 
+      this.ioChannel = Room.io.in(this.code);
 
-    Room.rooms[this.code] = this;
-    
-    this.currentlyIn = 'lobby';
+      Room.rooms[this.code] = this;
+      
+      this.currentlyIn = 'lobby';
 
-    this.game = new Game(this);
+      this.game = new Game(this);
 
-    this.leader = new Player(username, this);
-    this.leader.isLeader = true;
+      this.leader = new Player(username, this);
+      this.leader.isLeader = true;
 
-    this.log(`Room created by ${this.leader.username}`);
+      this.log(`Room created by ${this.leader.username}`);
 
-    Room.sendResponse("createRoomResponse", socket, {roomCode: this.code, playerData: this.leader.serialize(true)});
+      Room.scheduleDeleteRoomIfEmpty(this.code);
+
+      Room.sendResponse("createRoomResponse", socket, {roomCode: this.code, playerData: this.leader.serialize(true)});
+    } catch(err) {
+      this.log(`Error: ${err}`);
+      Room.sendResponse("createRoomResponse", socket, {}, 500);
+      Room.deleteRoomIfEmpty(this.code);
+    }
   }
 
   static sendResponse(responseName, socket, data, status = 200) {
@@ -174,7 +183,7 @@ class Room {
   }
 
   log(message) {
-    console.log(`[${this.code}] | ${new Date().toLocaleTimeString()} -> ${message}`);
+    console.log(`[${this.code || "No code"}] | ${new Date().toLocaleTimeString()} -> ${message}`);
   }
 
   static getRandomRoomCode(){
@@ -183,7 +192,12 @@ class Room {
 
   static getUniqueRoomCode(){
     let generatedCode = Room.getRandomRoomCode();
-    while(Room.rooms[generatedCode]) generatedCode = this.getRandomRoomCode();
+    let timesTried = 1;
+    while(Room.rooms[generatedCode]){
+      if(timesTried > MAX_NUM_OF_TRIES_GEN_CODE) throw(`Code could not be generated after ${MAX_NUM_OF_TRIES_GEN_CODE} tries`);
+      generatedCode = Room.getRandomRoomCode();
+      timesTried += 1;
+    } 
     return generatedCode;
   }
 
@@ -198,7 +212,7 @@ class Room {
 
   static deleteRoomIfEmpty(roomCode) {
     const room = Room.rooms[roomCode];
-    if(!room.currentlyConnectedPlayers) {
+    if(room && !room.currentlyConnectedPlayers) {
       room.log("No one left in the room, deleting it");
       room.deleted = true;
       delete Room.rooms[roomCode];

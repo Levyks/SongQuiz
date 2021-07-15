@@ -8,7 +8,8 @@
     "createRoom": "Criar uma sala",
     "or": "ou",
     "roomCode": "Código da sala",
-    "joinRoom": "Entrar na sala"
+    "joinRoom": "Entrar na sala",
+    "createRoomError": "Algo deu errado, tente novamente mais tarde"
   },
   
   "room": {
