@@ -26,8 +26,6 @@ io.on('connection', socket => {
       case "createRoom":
         new Room(socket, data.username);
         break;
-      case "joinRoom":
-        break;
       case "connectToRoom":
         Room.findRoomAndConnect(data, socket);
         break;
