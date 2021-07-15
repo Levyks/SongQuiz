@@ -1,4 +1,6 @@
 <script>
+  import { _ } from 'svelte-i18n';
+
   export let socket;
 
   let songs = [];
@@ -28,13 +30,13 @@
 
 </script>
 
-<h3>You've just listen to</h3>
+<h3>{$_('leftWindow.label')}</h3>
 <hr>
 <ul class="list-group text-left">
   {#each songs as song}
   <a href={song.href} target="_blank">
     <li class="list-group-item">
-      <img src={song.albumImageUrl} alt="Album thumbnail" class="album-image mr-2">
+      <img src={song.albumImageUrl} alt={$_('leftWindow.thumbAlt')} class="album-image mr-2">
       <div>
         <h5>{song.name}</h5>
         <span class="artists">{song.artists}</span>

@@ -1,5 +1,6 @@
 <script>
   import { push } from 'svelte-spa-router';
+  import { _ } from 'svelte-i18n';
 
   import Lobby from './Lobby.svelte';
   import Game from './Game.svelte';
@@ -36,14 +37,14 @@
 
         roomIsLoading = false;
       } else {
-        if(response.status === 404) window.alert(`Room ${code} does not exist`);
+        if(response.status === 404) window.alert($_("room.doesNotExist", { values: {code} }));
         push('/play');
       } 
     });
   }
 
   function handleLeaveClick(){
-    if(window.confirm("Do you want to leave the room?")){
+    if(window.confirm($_("room.leaveConfirmation"))){
       socket.emit('leaveRoom');
       push('/play');
     }
@@ -73,7 +74,7 @@
     {#if roomIsLoading}
       <div class="app-window w-100 text-center">
         <div class="spinner-border" role="status">
-          <span class="sr-only">Loading...</span>
+          <span class="sr-only">{$_("misc.loading")}...</span>
         </div>
       </div>
     {:else}

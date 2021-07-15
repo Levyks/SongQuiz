@@ -56,7 +56,7 @@ class Spotify {
   static async getPlaylistInfo(url, secondTry = false){
     const playlistId = Spotify.getPlaylistId(url);
 
-    if(!playlistId) return {status: 400, message: "This is not a valid Spotify playlist URL"};
+    if(!playlistId) return {status: 400, message: "This is not a valid Spotify® playlist URL"};
 
     if(!Spotify.accessToken) await Spotify.getAccessToken();
 

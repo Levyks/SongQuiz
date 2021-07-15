@@ -1,5 +1,6 @@
 <script>
   import { onMount } from 'svelte';
+  import { _ } from 'svelte-i18n';
   
   export let socket;
   export let roomState;
@@ -131,19 +132,19 @@
 <div class="game-wrapper">
   {#if !roomState.game}
     <div class="spinner-border" role="status">
-      <span class="sr-only">Loading...</span>
+      <span class="sr-only">{$_("misc.loading")}...</span>
     </div>
   {:else if roomState.game.currentRound.currentPhase == 'playing' || !showRoundResults}
 
     <div class="game-header">
-      <h2>Round {roomState.game.currentRound.number+1}</h2>
+      <h2>{$_("game.round.label", { values: { round: roomState.game.currentRound.number+1 }})}</h2>
 
       {#if timeRemaining}
-      <h3 class="text-secondary">{timeRemaining} seconds</h3>
+      <h3 class="text-secondary">{$_("game.round.remainingTime", { values: {seconds: timeRemaining} })}</h3>
       {/if}
       
       <hr>
-      <h2>{roomState.game.currentRound.type == "artist" ? "Guess the artist(s)" : "Guess the song"}</h2>
+      <h2>{roomState.game.currentRound.type == "artist" ? $_("game.round.type.artist") : $_("game.round.type.song")}</h2>
     </div>
 
     <div class="game-main">
@@ -173,10 +174,10 @@
       <li class="list-group-item">{i+1}º {player.username} - {player.score} pts</li>
       {/each}
       {#if !roomState.game.currentRound.playersThatGotItRight.length}
-      <li class="list-group-item">No one got it right :(</li>
+      <li class="list-group-item">{$_("game.round.results.noOneCorrect")}</li>
       {/if}
     </ul>
-    <h4 class="text-secondary">{roomState.game.currentRound.lastOne ? "Final results in" : "Next round starts in"} {nextRoundStartsIn}</h4>
+    <h4 class="text-secondary">{$_(roomState.game.currentRound.lastOne ? "game.round.results.nextRoundIn" : "game.round.results.finalResultsIn", { values: {seconds: nextRoundStartsIn} })}</h4>
   {/if}
 </div>
 

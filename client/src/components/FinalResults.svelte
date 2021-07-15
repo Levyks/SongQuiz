@@ -1,4 +1,6 @@
 <script>
+  import { _ } from 'svelte-i18n';
+
   export let socket;
   export let playerData;
   export let roomState;
@@ -12,7 +14,7 @@
 <div class="results-wrapper">
 
   <div class="results-header">
-    <h3>Final results:</h3>
+    <h3>{$_('finalResults.label')}</h3>
     <hr>
   </div>
   
@@ -31,9 +33,9 @@
 
   <div>
     {#if playerData.isLeader}
-      <button class="btn btn-primary" on:click={backToLobby}>Go back to the lobby</button>
+      <button class="btn btn-primary" on:click={backToLobby}>{$_('finalResults.button.isLeader')}</button>
     {:else}
-      <h6 class="text-secondary">Waiting for the leader</h6>
+      <h6 class="text-secondary">{$_('finalResults.button.notLeader')}</h6>
     {/if}
   </div>
 

@@ -1,6 +1,7 @@
 <script>
 	import {createEventDispatcher} from 'svelte';
 	import { push } from 'svelte-spa-router';
+	import { _ } from 'svelte-i18n';
 
 	export let params = undefined;
 	export let socket;
@@ -56,33 +57,33 @@
 
 <main>
   <div class="jumbotron">
-		<h2>Play with friends</h2>
+		<h2>{$_('createOrJoinGame.title')}</h2>
 		
 		<hr class="my-2">
 
 		<form on:submit|preventDefault={handleFormSubmit}>
 
 			<div class="form-group">
-				<label for="usernameInput">Username</label>
-				<input class="form-control" placeholder="Your Username" bind:value={username} required>
+				<label for="usernameInput">{$_('createOrJoinGame.username.label')}</label>
+				<input class="form-control" placeholder={$_('createOrJoinGame.username.placeholder')} bind:value={username} required>
 			</div>
 
 			{#if !isJoiningDefinedRoom}
 		
 			<div class="w-100 text-center">
-				<input on:click={handleCreateRoomClick} type="submit" class="btn btn-primary" action="createRoom" value="Create Room">
+				<input on:click={handleCreateRoomClick} type="submit" class="btn btn-primary" action="createRoom" value={$_('createOrJoinGame.createRoom')}>
 			</div>
 
 			<div class="w-100 text-center mb-3">
-				<strong>or</strong>
+				<strong>{$_('createOrJoinGame.or')}</strong>
 			</div>
 
 			{/if}
 
 			<div class="input-group mb-3">
-				<input type="text" class="form-control" placeholder="Room Code" bind:value={roomCode} required={roomCodeRequired}>
+				<input type="text" class="form-control" placeholder={$_('createOrJoinGame.roomCode')} bind:value={roomCode} required={roomCodeRequired}>
 				<div class="input-group-append">
-					<input class="btn btn-primary" type="submit" action="joinRoom" value="Join Room">
+					<input class="btn btn-primary" type="submit" action="joinRoom" value={$_('createOrJoinGame.joinRoom')}>
 				</div>
 			</div>
 		</form>

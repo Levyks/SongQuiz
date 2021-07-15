@@ -1,6 +1,10 @@
+<script>
+	import { _ } from 'svelte-i18n';
+</script>
+
 <main>
   <div class="jumbotron">
-    <h1>Page Not Found</h1>
+    <h1>{$_('misc.notFound')}</h1>
   </div>
 </main>
 

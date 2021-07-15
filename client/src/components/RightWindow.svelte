@@ -1,14 +1,16 @@
 <script>
+  import { _ } from 'svelte-i18n';
+
   export let roomState;
   export let roomCode;
   export let playersData;
 </script>
 
-<h3>Room {roomCode}</h3>
+<h3>{$_('rightWindow.label', {values: {roomCode}})}</h3>
 <hr>
 <div class="d-flex flex-row align-items-center mb-2">
-  <h5>Players</h5>
-  <h6 class="ml-auto">{playersData.length} online</h6>
+  <h5>{$_('rightWindow.players.label')}</h5>
+  <h6 class="ml-auto">{$_('rightWindow.players.number', {values: {number: playersData.length}})}</h6>
 </div>
 <div class="players-wrapper">
 {#each playersData as player, i}
@@ -17,7 +19,7 @@
     {#if roomState.currentlyIn == "game"}<span>{i+1}.</span>{/if}
     <strong class="mr-1" >{player.username}</strong>
     {#if player.isLeader}<i class="fas fa-crown text-warning"></i>{/if}
-    {#if roomState.currentlyIn == "game"}<span class="mx-1" >{player.score} points</span>{/if}
+    {#if roomState.currentlyIn == "game"}<span class="mx-1" >{$_('rightWindow.players.points', {values: {points: player.score}})}</span>{/if}
   </div>
 {/each}
 </div>
