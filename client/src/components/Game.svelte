@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { _ } from 'svelte-i18n';
+  import { _ } from '../services/i18n.js';
   
   export let socket;
   export let roomState;

@@ -1,5 +1,5 @@
 <script>
-  import { _ } from 'svelte-i18n';
+  import { _ } from '../services/i18n.js';
 
   export let roomState;
   export let roomCode;
