@@ -56,8 +56,7 @@ class Round {
   endRound() {
     if(!this.room || this.room.deleted) return;
 
-    this.currentPhase = 'results';
-
+    //Generates an array with the players that got it right [{username, score}, ...]
     this.playersThatGotItRight = [];
     Object.keys(this.playersAnswers).forEach(username => {
       if(this.playersAnswers[username].gotItRight) {
@@ -80,7 +79,8 @@ class Round {
       }
     }, TIME_BETWEEN_ROUNDS * 1000);
 
-    //Sends data of the song that was just played to the clients to be added to the history
+    this.currentPhase = 'results';
+
     this.room.ioChannel.emit('addSongToHistory', this.choices[this.correctChoice]);
 
     //Remove song that was just played from the list of available songs in the game (so it does not repeat)
