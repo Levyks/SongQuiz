@@ -1,12 +1,33 @@
 const crypto = require("crypto");
 
+const TIME_TO_LEAVE_ROOM_AFTER_DISCONNECT = 30
+
 class Player {
 
   constructor(username, room) {
     this.room = room;
     this.username = username;
     this.score = 0;
+    this.leaveRoomTimeout = false;
     this.token = Player.generateToken();
+  }
+
+  leaveRoom(toDisconnect = true) {
+    if(toDisconnect){
+      this.socket.removeAllListeners();
+      this.socket.disconnect();
+      delete this.socket;
+  
+      this.room.currentlyConnectedPlayers -= 1;
+    }
+
+    delete this.room.players[this.username];
+
+    this.room.syncPlayersData();
+
+    this.room.log(`Player ${this.username} left the room`);
+    
+    this.room.constructor.deleteRoomIfEmpty(this.room.code);
   }
 
   setSocket(socket) {
@@ -24,20 +45,7 @@ class Player {
     });
 
     this.socket.on('leaveRoom', () => {
-      this.socket.removeAllListeners();
-      this.socket.disconnect();
-      delete this.socket;
-
-      this.room.currentlyConnectedPlayers -= 1;
-
-      delete this.room.players[this.username];
-
-      this.room.syncPlayersData();
-
-      this.room.log(`Player ${this.username} left the room`);
-      
-      this.room.constructor.deleteRoomIfEmpty(this.room.code);
-
+      this.leaveRoom();
     });
 
     this.socket.on('disconnect', () => {
@@ -53,14 +61,10 @@ class Player {
       if(!this.room.currentlyConnectedPlayers) {
         this.room.constructor.scheduleDeleteRoomIfEmpty(this.room.code);    
       }
-      /*
-      if(!Object.keys(this.room.players).length){
-        console.log(`Deleting room ${this.room.code}`);
-        delete this.room.constructor.rooms[this.room.code];
-      } else{
-        delete this.room.players[this.username];
-      }
-      */
+      
+      this.room.log(`Player ${this.username} will be kicked in ${TIME_TO_LEAVE_ROOM_AFTER_DISCONNECT} seconds if he doesn't rejoin`);
+      this.leaveRoomTimeout = setTimeout(() => {this.leaveRoom(false)}, TIME_TO_LEAVE_ROOM_AFTER_DISCONNECT * 1000);
+
     });
   }
 
