@@ -181,7 +181,7 @@
 
     <input type="range" class="volume-input" value={volume} on:input={handleVolumeInput} min="0" max="100">
   {:else if roomState.game.currentRound.currentPhase == 'results'}
-    <h3>Round results:</h3>
+    <h3>{$_("game.round.results.label")}</h3>
     <ul class="list-group">
       {#each roomState.game.currentRound.playersThatGotItRight as player, i}
       <li class="list-group-item">{i+1}º {player.username} - {player.score} pts</li>
