@@ -91,7 +91,7 @@
 			{/if}
 
 			<div class="input-group mb-3">
-				<input type="text" class="form-control" placeholder={$_('createOrJoinGame.roomCode')} bind:value={roomCode} required={roomCodeRequired}>
+				<input type="number" class="form-control" placeholder={$_('createOrJoinGame.roomCode')} bind:value={roomCode} required={roomCodeRequired}>
 				<div class="input-group-append">
 					<input class="btn btn-primary" type="submit" action="joinRoom" value={$_('createOrJoinGame.joinRoom')}>
 				</div>
