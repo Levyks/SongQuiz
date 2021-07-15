@@ -28,7 +28,8 @@
     "playlistMessages": {
       "validSongs": "{number} músicas válidas",
       "error": "Erro: {error}",
-      "notSet": "Nenhuma playlist escolhida ainda"
+      "notSet": "Nenhuma playlist escolhida ainda",
+      "tooSmall": "A playlist é muito pequena para o número de rounds atual"
     },
     "playlistUrlPlaceholder": "Link de uma playlist do Spotify®",
     "button": {

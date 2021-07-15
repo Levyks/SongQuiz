@@ -28,7 +28,7 @@
     timePerRound = state.timePerRound;
     lastTimePerRound = timePerRound;
 
-    isLoadingPlaylist = false;
+    if(state.triggeredByPlaylistChange) isLoadingPlaylist = false;
   }
 
   function handlePlaylistUrlBlur(){
@@ -44,6 +44,8 @@
     if(numberOfRounds === lastNumberOfRounds) return;
 
     numberOfRounds = Math.max(1, Math.ceil(numberOfRounds));
+
+    isLoadingPlaylist = true;
 
     lastNumberOfRounds = numberOfRounds;
     socket.emit('setNumberOfRounds', numberOfRounds);
@@ -86,10 +88,12 @@
 
         <span class="form-control" readonly>
         {#if roomState.playlist}
-          {#if roomState.playlist.status == 200}
-            <a href={roomState.playlist.info.href} target="_blank">{roomState.playlist.info.name} | {$_("lobby.playlistMessages.validSongs", { values: {number: roomState.playlist.info.valid_songs} })}</a>
+          {#if roomState.playlistTooSmall}
+            <a class="playlist-label text-danger" href={roomState.playlist.info.href} target="_blank">{roomState.playlist.info.name} | {$_("lobby.playlistMessages.validSongs", { values: {number: roomState.playlist.info.valid_songs} })} | {$_("lobby.playlistMessages.tooSmall")} </a>
+          {:else if roomState.playlist.status == 200}
+            <a class="playlist-label" href={roomState.playlist.info.href} target="_blank">{roomState.playlist.info.name} | {$_("lobby.playlistMessages.validSongs", { values: {number: roomState.playlist.info.valid_songs} })}</a>
           {:else}
-            <span class="text-danger">{$_("lobby.playlistMessages.error", { values: {error: roomState.playlist.message} })}</span>
+            <span class="playlist-label text-danger">{$_("lobby.playlistMessages.error", { values: {error: roomState.playlist.message} })}</span>
           {/if}
         {:else}
           {$_("lobby.playlistMessages.notSet")}
@@ -146,7 +150,7 @@
 
   <div class=text-center>
   {#if playerData.isLeader}
-    <button class="btn btn-primary" on:click={startGame} disabled={!(roomState.playlist && roomState.playlist.status == 200)} title={validPlaylistSet ? '' : $_("lobby.button.playlistNotSet")}>{$_("lobby.button.isLeader")}</button>
+    <button class="btn btn-primary" on:click={startGame} disabled={!(roomState.playlist && roomState.playlist.status == 200 && !roomState.playlistTooSmall)} title={validPlaylistSet ? '' : $_("lobby.button.playlistNotSet")}>{$_("lobby.button.isLeader")}</button>
   {:else}
     <button class="btn btn-primary" disabled>{$_("lobby.button.notLeader")}</button>
   {/if}
@@ -165,5 +169,9 @@
   .spinner-border {
     width: 22px;
     height: 22px;
+  }
+
+  .playlist-label {
+    height: none;
   }
 </style>

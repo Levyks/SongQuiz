@@ -5,6 +5,7 @@ const Spotify = require('./Spotify');
 const TIME_BEFORE_DELETING_ROOM = 30
 const DEFAULT_NUMBER_OF_ROUNDS = 10;
 const DEFAULT_TIME_PER_ROUND = 15;
+const NUMBER_OF_CHOICES = 4;
 
 class Room {
   static rooms = {}
@@ -16,6 +17,7 @@ class Room {
 
     this.numberOfRounds = DEFAULT_NUMBER_OF_ROUNDS;
     this.timePerRound = DEFAULT_TIME_PER_ROUND;
+    this.choicesPerRound = NUMBER_OF_CHOICES;
 
     this.code = Room.getUniqueRoomCode(); 
     this.ioChannel = Room.io.in(this.code);
@@ -41,22 +43,34 @@ class Room {
     });
   }
 
-  async setPlaylist(playlistUrl) {
+  async setPlaylist(playlistUrl = this.playlistUrl) {
+    
+    if(playlistUrl != this.playlistUrl) this.playlist = playlistUrl ? await Spotify.getPlaylistInfo(playlistUrl) : undefined;
     this.playlistUrl = playlistUrl;
 
-    this.playlist = this.playlistUrl !== '' ? await Spotify.getPlaylistInfo(this.playlistUrl) : undefined;
     this.playlistSet = this.playlist && this.playlist.status === 200;
-    this.syncRoomState();
+    this.playlistTooSmall = this.playlistSet && this.playlist.info.valid_songs < this.choicesPerRound + this.numberOfRounds - 1;
 
-    this.log(this.playlistSet ? 
-      `Playlist set succesfuly to ${this.playlist.info.name}` : this.playlist ?
-      `Playlist not set, reason: Error ${this.playlist.status}` :
-      `Playlist unset`);
+    if(this.playlistSet) {
+      this.log(`Playlist set succesfuly to ${this.playlist.info.name}`);
+    } else if(this.playlist) {
+      if (this.playlistTooSmall) {
+        this.log(`Playlist is too small`);
+      } else {
+        this.log(`Playlist not set, reason: Error ${this.playlist.status}`);
+      }
+    } else {
+      this.log(`Playlist unset`);
+    }
+
+    this.syncRoomState(true);
+
   }
 
   setNumberOfRounds(numberOfRounds) {
     if(isNaN(numberOfRounds)) return;
     this.numberOfRounds = Math.max(1, Math.ceil(numberOfRounds));
+    this.setPlaylist();
     this.syncRoomState();
   }
 
@@ -119,7 +133,7 @@ class Room {
 
     player.socket.join(this.code);
 
-    this.syncRoomState(socket);
+    this.syncRoomState(false, socket);
 
     this.syncPlayersData();
 
@@ -143,12 +157,14 @@ class Room {
     return playerList;
   }
 
-  syncRoomState(socket = this.ioChannel) {
+  syncRoomState(triggeredByPlaylistChange = false, socket = this.ioChannel) {
     let roomState = {
       currentlyIn: this.currentlyIn,
       playlist: this.playlist,
+      playlistTooSmall: !!this.playlistTooSmall,
       numberOfRounds: this.numberOfRounds,
-      timePerRound: this.timePerRound
+      timePerRound: this.timePerRound,
+      triggeredByPlaylistChange
     };
     if(this.game.started) {
       roomState.game = this.game.getGameState();

@@ -1,6 +1,5 @@
 const TIME_TO_CLOSE_OFFSET = 1;
 const TIME_BETWEEN_ROUNDS = 4;
-const NUMBER_OF_CHOICES = 4;
 
 class Round {
   constructor(roundNumber, game) {
@@ -12,7 +11,7 @@ class Round {
     this.playersAnswers = {};
   
     this.generateRoundType();
-    this.generateChoices(NUMBER_OF_CHOICES);
+    this.generateChoices(this.room.choicesPerRound);
   }
 
   generateRoundType() {

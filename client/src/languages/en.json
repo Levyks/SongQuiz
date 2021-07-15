@@ -28,7 +28,8 @@
     "playlistMessages": {
       "validSongs": "{number} valid songs",
       "error": "Error: {error}",
-      "notSet": "Playlist not set yet"
+      "notSet": "Playlist not set yet",
+      "tooSmall": "The playlist is too small for the current number of rounds"
     },
     "playlistUrlPlaceholder": "An Spotify® playlist URL",
     "button": {

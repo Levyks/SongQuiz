@@ -15,10 +15,10 @@ class Game {
     this.room.currentlyIn = 'game';
     this.room.syncRoomState();
 
+    if(!this.room.playlistSet || this.room.playlistTooSmall) return;
+
     this.playlistUrl = this.room.playlistUrl;
     this.playlist = this.room.playlist;
-
-    if(!this.playlist) return;
 
     this.numberOfRounds = this.room.numberOfRounds;
     this.timePerRound = this.room.timePerRound;
