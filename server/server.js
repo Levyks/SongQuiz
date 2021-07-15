@@ -37,9 +37,4 @@ io.on('connection', socket => {
   });
 });
 
-app.use('/rooms', (req, res) => {
-  console.log(Room.rooms);
-  res.sendStatus(200);
-})
-
 httpServer.listen(3000);
