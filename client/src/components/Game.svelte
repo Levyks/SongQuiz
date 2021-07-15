@@ -51,7 +51,6 @@
           timeRemaining-=1;
           if(timeRemaining <= 0){
             clearInterval(timer);
-            timeEnded();
           } 
         }, 1000);
         break;
@@ -73,6 +72,10 @@
         }, 1000);
 
         setTimeout(() => {
+          if(audioElement){
+            audioElement.pause();
+            audioElement.currentTime = 0;
+          }
           showRoundResults = true;
         }, 1000);
 
@@ -91,13 +94,6 @@
       songQueuedToPlay = false;
     }
 	});
-
-  function timeEnded() {
-    if(audioElement){
-      audioElement.pause();
-      audioElement.currentTime = 0;
-    }
-  }
 
   function formatChoices(data) {
     const output = [];
