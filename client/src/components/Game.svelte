@@ -208,4 +208,10 @@
     width: 100%;
   }
 
+  @media only screen and (max-width: 700px) {
+    .choice-btn {
+      line-height: 2.5;
+    }
+  }
+
 </style>
