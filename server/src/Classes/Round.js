@@ -75,6 +75,7 @@ class Round {
 
     this.currentPhase = 'results';
 
+    //Sends data of the song that was just played to the clients to be added to the history
     this.room.ioChannel.emit('addSongToHistory', this.choices[this.correctChoice]);
 
     this.room.syncRoomState();
