@@ -53,10 +53,8 @@ class Round {
   endRound() {
     if(!this.room || this.room.deleted) return;
 
-    this.currentPhase = 'results';
-
+    //Generates an array with the players that got it right [{username, score}, ...]
     this.playersThatGotItRight = [];
-
     Object.keys(this.playersAnswers).forEach(username => {
       if(this.playersAnswers[username].gotItRight) {
         this.playersThatGotItRight.push({
@@ -74,6 +72,8 @@ class Round {
         this.game.startRound(this.roundNumber+1);
       }
     }, TIME_BETWEEN_ROUNDS * 1000);
+
+    this.currentPhase = 'results';
 
     this.room.ioChannel.emit('addSongToHistory', this.choices[this.correctChoice]);
 
