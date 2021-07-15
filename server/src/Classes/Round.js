@@ -81,6 +81,7 @@ class Round {
 
     this.currentPhase = 'results';
 
+    //Sends data of the song that was just played to the clients to be added to the history
     this.room.ioChannel.emit('addSongToHistory', this.choices[this.correctChoice]);
 
     //Remove song that was just played from the list of available songs in the game (so it does not repeat)
