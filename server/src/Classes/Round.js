@@ -1,5 +1,6 @@
 const TIME_TO_CLOSE_OFFSET = 1;
 const TIME_BETWEEN_ROUNDS = 4;
+const NUMBER_OF_CHOICES = 4;
 
 class Round {
   constructor(roundNumber, game) {
@@ -11,7 +12,7 @@ class Round {
     this.playersAnswers = {};
   
     this.generateRoundType();
-    this.generateChoices(4);
+    this.generateChoices(NUMBER_OF_CHOICES);
   }
 
   generateRoundType() {
@@ -21,21 +22,24 @@ class Round {
   }
 
   generateChoices(numberOfChoices) {
-    const indexes = [];
     const numberOfValidSongs = this.game.playlist.info.valid_songs;
     
-    while(indexes.length < numberOfChoices) {
+    //Generates an array of {numberOfChoices} unique indexes
+    const choicesIndexes = [];
+    while(choicesIndexes.length < numberOfChoices) {
       const randomIndex = Math.floor(Math.random()*numberOfValidSongs);
-      if(!indexes.includes(randomIndex)) indexes.push(randomIndex);
+      if(!choicesIndexes.includes(randomIndex)) choicesIndexes.push(randomIndex);
     }
 
+    //Generates the correct choice 
     this.correctChoice = Math.floor(Math.random()*numberOfChoices);
+    this.correctChoiceIndex = choicesIndexes[this.correctChoice];
 
-    this.choices = []
-
-    indexes.forEach(index => {
-      this.choices.push(this.game.playlistTracks[index]);
-    })
+    //Generates an array with the songs with the indexes previously generated
+    this.choices = [];
+    choicesIndexes.forEach(choiceIndex => {
+      this.choices.push(this.game.playlistTracks[choiceIndex]);
+    });
   }
 
   startRound() {
@@ -51,10 +55,8 @@ class Round {
   }
 
   endRound() {
-    this.currentPhase = 'results';
-
+    //Generates an array with the players that got it right [{username, score}, ...]
     this.playersThatGotItRight = [];
-
     Object.keys(this.playersAnswers).forEach(username => {
       if(this.playersAnswers[username].gotItRight) {
         this.playersThatGotItRight.push({
@@ -64,8 +66,11 @@ class Round {
         this.players[username].score += this.playersAnswers[username].score;
       }
     });
+
+    //Sorts the array
     this.playersThatGotItRight.sort((a, b) => a.score < b.score ? 1 : -1);
 
+    //Starts the timer for the next round to start
     this.nextRoundTimerStartedAt = Date.now();
     setTimeout(() => {
       if(this.room.constructor.rooms[this.room.code]){
@@ -73,8 +78,15 @@ class Round {
       }
     }, TIME_BETWEEN_ROUNDS * 1000);
 
+    //Sends data of the song that was just played to the clients to be added to the history
     this.room.ioChannel.emit('addSongToHistory', this.choices[this.correctChoice]);
 
+    //Remove song that was just played from the list of available songs in the game (so it does not repeat)
+    this.room.game.playlistTracks.splice(this.correctChoiceIndex, 1);
+    this.game.playlist.info.valid_songs -= 1;
+
+    //Changes round current phase and sync
+    this.currentPhase = 'results';
     this.room.syncRoomState();
     this.room.syncPlayersData();
   }
