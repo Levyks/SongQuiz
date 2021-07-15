@@ -30,18 +30,22 @@
 
   function connectToRoom(code, playerData){
     socket.emit('initialSetup', {action:'connectToRoom', code, playerData});
-    socket.on('connectToRoomResponse', response => {
-      if(response.status === 200){
-        playerData = response.playerData;
-        localStorage.setItem('playerData', JSON.stringify(response.playerData) );
-
-        roomIsLoading = false;
-      } else {
-        if(response.status === 404) window.alert($_("room.doesNotExist", { values: {code} }));
-        push('/play');
-      } 
-    });
   }
+
+  socket.on('connectToRoomResponse', response => {
+    if(response.status === 200){
+      playerData = response.playerData;
+      console.log(playerData);
+      localStorage.setItem('playerData', JSON.stringify(response.playerData) );
+
+      roomIsLoading = false;
+    } else {
+      if(response.status === 404) window.alert($_("room.doesNotExist", { values: {code: params.roomCode} }));
+      else if(response.messageI18n) window.alert($_(response.messageI18n));
+      else window.alert($_("misc.somethingWentWrong"));
+      push('/play');
+    } 
+  });
 
   function handleLeaveClick(){
     if(window.confirm($_("room.leaveConfirmation"))){

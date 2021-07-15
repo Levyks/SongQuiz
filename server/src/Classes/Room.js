@@ -39,7 +39,7 @@ class Room {
 
       Room.sendResponse("createRoomResponse", socket, {roomCode: this.code, playerData: this.leader.serialize(true)});
     } catch(err) {
-      this.log(`Error: ${err}`);
+      this.log(`Error while creating room: ${err}`);
       Room.sendResponse("createRoomResponse", socket, {}, 500);
       Room.deleteRoomIfEmpty(this.code);
     }
@@ -111,42 +111,56 @@ class Room {
   }
 
   connectPlayer(data, socket) {
-    let player;
+    try {
+      let player;
 
-    //If player is the leader
-    if(data.playerData.isLeader && Player.isTheSame(data.playerData, this.leader)) {
-      player = this.leader;
-      this.setLeaderListeners(socket);
-      this.log(`Leader ${player.username} (re)connected`);
+      //If player is the leader
+      if(data.playerData.isLeader && Player.isTheSame(data.playerData, this.leader)) {
+        player = this.leader;
+        this.setLeaderListeners(socket);
+        this.log(`Leader ${player.username} (re)connected`);
 
-    //If player was previously connected  
-    } else if (this.players[data.playerData.username] && Player.isTheSame(data.playerData, this.players[data.playerData.username])) {
-      player = this.players[data.playerData.username];
-      this.log(`Player ${player.username} reconnected`)
+      //If player was previously connected  
+      } else if (this.players[data.playerData.username]){
+        //If we can authenticate that this user is the same a last time, reconnect it
+        if(Player.isTheSame(data.playerData, this.players[data.playerData.username])) {
+          player = this.players[data.playerData.username];
+          this.log(`Player ${player.username} reconnected`)
 
-    //If it's a new player
-    } else {
-      player = new Player(data.playerData.username, this);
-      this.log(`Player ${player.username} connected`);
+        //If not, refuse it
+        } else {
+          Room.sendResponse("connectToRoomResponse", socket, {messageI18n: "room.playerAlreadyExists"}, 409);
+          this.log(`Someone else tried to join with the username "${data.playerData.username}" and was blocked`);
+          return;
+        }
+
+      //If it's a new player
+      } else {
+        player = new Player(data.playerData.username, this);
+        this.log(`Player ${player.username} connected`);
+      }
+
+      if(this.deletionTimeOut) {
+        clearTimeout(this.deletionTimeOut)
+        this.deletionTimeOut = false;
+        this.log("Scheduled deletion canceled");
+      }
+
+      player.setSocket(socket);
+
+      this.players[player.username] = player;
+
+      player.socket.join(this.code);
+
+      this.syncRoomState(false, socket);
+
+      this.syncPlayersData();
+
+      Room.sendResponse("connectToRoomResponse", socket, {roomCode: this.code, playerData: player.serialize(true)});
+    } catch(err) {
+      this.log(`Error while connecting player "${data.playerData.username}": ${err}`);
+      Room.sendResponse("connectToRoomResponse", socket, {}, 500);
     }
-
-    if(this.deletionTimeOut) {
-      clearTimeout(this.deletionTimeOut)
-      this.deletionTimeOut = false;
-      this.log("Scheduled deletion canceled");
-    }
-
-    player.setSocket(socket);
-
-    this.players[player.username] = player;
-
-    player.socket.join(this.code);
-
-    this.syncRoomState(false, socket);
-
-    this.syncPlayersData();
-
-    Room.sendResponse("connectToRoomResponse", socket, {roomCode: this.code, playerData: player.serialize(true)});
   }
 
   syncPlayersData(){

@@ -1,5 +1,4 @@
 <script>
-	import {createEventDispatcher} from 'svelte';
 	import { push } from 'svelte-spa-router';
 	import { _ } from 'svelte-i18n';
 
@@ -44,13 +43,23 @@
 		if(response.status === 200){
 			joinRoom(response)
 		} else {
-			window.alert($_('createOrJoinGame.createRoomError'));
+			window.alert($_('misc.somethingWentWrong'));
 		}
   });
 
 	function joinRoom(data) {
-		localStorage.setItem('lastRoomJoined', data.roomCode);
-		localStorage.setItem('playerData', JSON.stringify(data.playerData) );
+		const storedLastRoomJoined = localStorage.getItem('lastRoomJoined');
+  	const storedPlayerData = JSON.parse(localStorage.getItem('playerData'));
+
+		if(
+			storedLastRoomJoined != data.roomCode || 
+			storedPlayerData.username != data.playerData.username ||
+			storedPlayerData.token != data.playerData.token)
+			{
+			localStorage.setItem('lastRoomJoined', data.roomCode);
+			localStorage.setItem('playerData', JSON.stringify(data.playerData) );
+		}
+
 		push(`/play/room/${data.roomCode}`);
 	}
 

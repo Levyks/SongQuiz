@@ -8,13 +8,13 @@
     "createRoom": "Create room",
     "or": "or",
     "roomCode": "Room code",
-    "joinRoom": "Join room",
-    "createRoomError": "Something went wrong, please try again later"
+    "joinRoom": "Join room"
   },
 
   "room": {
     "doesNotExist": "Room {code} does not exist",
-    "leaveConfirmation": "Do you want to leave the room?"
+    "leaveConfirmation": "Do you want to leave the room?",
+    "playerAlreadyExists": "There's already a player with this username on this room"
   },
 
   "lobby": {
@@ -81,6 +81,7 @@
 
   "misc": {
     "loading": "Loading",
-    "notFound": "Page not found"
+    "notFound": "Page not found",
+    "somethingWentWrong": "Something went wrong, please try again later"
   }
 }
