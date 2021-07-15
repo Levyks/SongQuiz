@@ -54,7 +54,10 @@ class Round {
   }
 
   endRound() {
-    //Generates an array with the players that got it right [{username, score}, ...]
+    if(!this.room || this.room.deleted) return;
+
+    this.currentPhase = 'results';
+
     this.playersThatGotItRight = [];
     Object.keys(this.playersAnswers).forEach(username => {
       if(this.playersAnswers[username].gotItRight) {
