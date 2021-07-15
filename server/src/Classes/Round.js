@@ -51,6 +51,8 @@ class Round {
   }
 
   endRound() {
+    if(!this.room || this.room.deleted) return;
+
     this.currentPhase = 'results';
 
     this.playersThatGotItRight = [];
