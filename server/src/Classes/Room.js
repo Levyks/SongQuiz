@@ -60,7 +60,7 @@ class Room {
     this.playlistSet = this.playlist && this.playlist.status === 200;
     this.playlistTooSmall = this.playlistSet && this.playlist.info.valid_songs < this.choicesPerRound + this.numberOfRounds - 1;
 
-    if(this.playlistSet) {
+    if(this.playlistSet && !this.playlistTooSmall) {
       this.log(`Playlist set succesfuly to ${this.playlist.info.name}`);
     } else if(this.playlist) {
       if (this.playlistTooSmall) {
