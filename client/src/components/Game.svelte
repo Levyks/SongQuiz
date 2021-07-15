@@ -177,7 +177,7 @@
       <li class="list-group-item">{$_("game.round.results.noOneCorrect")}</li>
       {/if}
     </ul>
-    <h4 class="text-secondary">{$_(roomState.game.currentRound.lastOne ? "game.round.results.nextRoundIn" : "game.round.results.finalResultsIn", { values: {seconds: nextRoundStartsIn} })}</h4>
+    <h4 class="text-secondary">{$_(roomState.game.currentRound.lastOne ? "game.round.results.finalResultsIn" : "game.round.results.nextRoundIn", { values: {seconds: nextRoundStartsIn} })}</h4>
   {/if}
 </div>
 
