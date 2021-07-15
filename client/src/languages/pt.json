@@ -51,7 +51,7 @@
         "label": "Resultados da rodada:",
         "noOneCorrect": "Ninguém acertou :(",
         "nextRoundIn": "Próximo round começando em {seconds}",
-        "finalResultsIn": "Resultado final em {seconds}"
+        "finalResultsIn": "Resultados finais em {seconds}"
       }
     }
   },
