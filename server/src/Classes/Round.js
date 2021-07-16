@@ -21,7 +21,7 @@ class Round {
   }
 
   generateChoices(numberOfChoices) {
-    const numberOfValidSongs = this.game.playlist.info.valid_songs;
+    const numberOfValidSongs = this.game.numberOfValidSongs;
     
     //Generates an array of {numberOfChoices} unique indexes
     const choicesIndexes = [];
@@ -86,8 +86,8 @@ class Round {
 
     //Remove song that was just played from the list of available songs in the game (so it does not repeat)
     this.room.game.playlistTracks.splice(this.correctChoiceIndex, 1);
-    this.game.playlist.info.valid_songs -= 1;
-
+    this.game.numberOfValidSongs -= 1;
+    
     //Changes round current phase and sync
     this.currentPhase = 'results';
     this.room.syncRoomState();

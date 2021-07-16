@@ -19,6 +19,7 @@ class Game {
 
     this.playlistUrl = this.room.playlistUrl;
     this.playlist = this.room.playlist;
+    this.numberOfValidSongs = this.playlist.info.valid_songs;
 
     this.numberOfRounds = this.room.numberOfRounds;
     this.timePerRound = this.room.timePerRound;
