@@ -15,7 +15,15 @@ const socket = io(`${__songQuiz.env.SERVER_URL}`);
 
 socket.on("disconnect", () => {
 	console.log("Socket disconnected");
-})
+});
+
+socket.on("connect", () => {
+	console.log("Socket connected");
+});
+
+socket.on("reconnect", () => {
+	console.log("Socket reconnected");
+});
 
 function handleRouteEvent(event){
 	switch(event.detail.action){
