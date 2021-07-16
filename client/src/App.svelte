@@ -13,6 +13,10 @@ setupI18n();
 
 const socket = io(`${__songQuiz.env.SERVER_URL}`);
 
+socket.on("disconnect", () => {
+	console.log("Socket disconnected");
+})
+
 function handleRouteEvent(event){
 	switch(event.detail.action){
 		case "redirectToRoom":
