@@ -113,6 +113,9 @@ class Room {
       this.syncRoomState(true);  
 
       this.log(`Number of rounds updated, the playlist is ${this.playlist.info.tooSmall ? 'too small' : 'big enough'}`);
+      
+    } else {
+      this.syncRoomState(true);  
     }
 
   }
