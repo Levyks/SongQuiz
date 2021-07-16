@@ -40,7 +40,6 @@
         correctChoice = false;
         wrongChoice = false;
 
-        nextRoundTimer = false;
         showRoundResults = false;
 
         startPlaying();
@@ -96,6 +95,7 @@
         nextRoundStartsIn-=1;
         if(nextRoundStartsIn <= 0){
           clearInterval(nextRoundTimer);
+          nextRoundTimer = false;
         } 
       }, 1000);
     }  
