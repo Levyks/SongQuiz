@@ -24,8 +24,8 @@
 
   if(params.roomCode == lastRoomJoined && playerData){
     connectToRoom(params.roomCode, playerData);
-    socket.on("reconnect", () => {
-      console.log("Socket reconnected");
+    socket.on("connect", () => {
+      console.log("Socket connected");
       connectToRoom(params.roomCode, playerData);
     });
   } else {

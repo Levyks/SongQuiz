@@ -5,6 +5,7 @@
 	export let params = undefined;
 	export let socket;
 
+	socket.removeAllListeners('connect');
 	socket.disconnect();
 	socket.connect();
 
