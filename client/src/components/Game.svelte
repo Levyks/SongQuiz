@@ -11,14 +11,13 @@
   let correctChoice = false;
   let wrongChoice = false;
   
-  let songQueuedToPlay = false;
-
   let showRoundResults = false;
 
   let showButtonToInteract = false;
 
   let timeRemaining = 0;
 
+  let nextRoundTimer;
   let nextRoundStartsIn;
 
   let volume = parseInt(localStorage.getItem('defaultVolume')) || 50;
@@ -35,14 +34,10 @@
         correctChoice = false;
         wrongChoice = false;
 
+        nextRoundTimer = false;
         showRoundResults = false;
 
-        if(audioElement){
-          startPlaying();
-        } else {
-          songQueuedToPlay = true;
-        }
-        
+        startPlaying();
 
         choicesButtonsData = formatChoices(state.game.currentRound);
 
@@ -63,16 +58,19 @@
 
         choosenChoice = false;
 
-        nextRoundStartsIn = state.game.currentRound.timeRemainingForNextRound;
-        const nextRoundTimer = setInterval(() => {
-          nextRoundStartsIn-=1;
-          if(nextRoundStartsIn <= 0){
-            clearInterval(nextRoundTimer);
-          } 
-        }, 1000);
+        if(!nextRoundTimer){
+          nextRoundStartsIn = state.game.currentRound.timeRemainingForNextRound;
+          nextRoundTimer = setInterval(() => {
+            nextRoundStartsIn-=1;
+            if(nextRoundStartsIn <= 0){
+              clearInterval(nextRoundTimer);
+            } 
+          }, 1000);
+        }  
 
         if(state.targeted) {
           showRoundResults = true;
+          setAudioElementSrc(state.game.nextRoundSongUrl);
         } else {
           setTimeout(() => {
             if(audioElement){
@@ -80,8 +78,9 @@
               audioElement.currentTime = 0;
             }
             showRoundResults = true;
+            setAudioElementSrc(state.game.nextRoundSongUrl);
           }, 1000);
-        }
+        } 
         
         localStorage.setItem('defaultVolume', volume);
 
@@ -92,10 +91,32 @@
     }
   }
 
+  function setAudioElementSrc(url) {
+    if(!audioElement) {
+      onMount(() => {setAudioElementSrc(url)});
+      return;
+    }
+
+    if(!url) return;
+
+    if(audioElement.src != url) {
+      audioElement.src = url;
+    }
+  }
+
   function startPlaying() {
-    audioElement.src = roomState.game.currentRound.trackToPlay;
+    if(!audioElement) {
+      onMount(startPlaying);
+      return;
+    }
+
+    setAudioElementSrc(roomState.game.currentRound.trackToPlay);
+    
     audioElement.volume = volume/100;
 
+    /* play() method will throw an error if the user has not yet interacted with the page
+     * so, we show a button to force the user to interact
+     */
     audioElement.play().then(() => {
       showButtonToInteract = false;
     }).catch(err => {
@@ -104,13 +125,6 @@
       }
     });
   }
-
-  onMount(() => {
-		if(songQueuedToPlay){
-      startPlaying();
-      songQueuedToPlay = false;
-    }
-	});
 
   function formatChoices(data) {
     const output = [];

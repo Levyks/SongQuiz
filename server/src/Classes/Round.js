@@ -1,9 +1,8 @@
 const TIME_TO_CLOSE_OFFSET = 1;
-const TIME_BETWEEN_ROUNDS = 4;
 
 class Round {
-  constructor(roundNumber, game) {
-    this.roundNumber = roundNumber;
+  constructor(number, game) {
+    this.number = number;
 
     this.game = game;
     this.room = this.game.room;
@@ -39,10 +38,12 @@ class Round {
     choicesIndexes.forEach(choiceIndex => {
       this.choices.push(this.game.playlistTracks[choiceIndex]);
     });
+
+    this.songToPlayUrl = this.choices[this.correctChoice].preview_url;
   }
 
   startRound() {
-    this.room.log(`Round ${this.roundNumber} starting, the correct choice is ${this.correctChoice}`);
+    this.room.log(`Round ${this.number} starting, the correct choice is ${this.correctChoice}`);
     this.game.started = true;
 
     this.currentPhase = 'playing';
@@ -71,27 +72,20 @@ class Round {
     //Sorts the array
     this.playersThatGotItRight.sort((a, b) => a.score < b.score ? 1 : -1);
 
-    //Starts the timer for the next round to start
-    this.nextRoundTimerStartedAt = Date.now();
-    setTimeout(() => {
-      if(this.room.constructor.rooms[this.room.code]){
-        this.game.startRound(this.roundNumber+1);
-      }
-    }, TIME_BETWEEN_ROUNDS * 1000);
-
-    this.currentPhase = 'results';
-
-    //Sends data of the song that was just played to the clients to be added to the history
-    this.room.ioChannel.emit('addSongToHistory', this.choices[this.correctChoice]);
-
     //Remove song that was just played from the list of available songs in the game (so it does not repeat)
     this.room.game.playlistTracks.splice(this.correctChoiceIndex, 1);
     this.game.numberOfValidSongs -= 1;
     
+    //Schedules next round
+    this.game.scheduleNextRound();
+
     //Changes round current phase and sync
     this.currentPhase = 'results';
     this.room.syncRoomState();
     this.room.syncPlayersData();
+
+    //Sends data of the song that was just played to the clients to be added to the history
+    this.room.ioChannel.emit('addSongToHistory', this.choices[this.correctChoice]);
   }
 
   getTimeRemaining(round = true) {
@@ -102,7 +96,7 @@ class Round {
   }
 
   getTimeRemainingForNextRound(round = true) {
-    let timeRemaining = TIME_BETWEEN_ROUNDS - (Date.now() - this.nextRoundTimerStartedAt)/1000;
+    let timeRemaining = this.game.timeBetweenRounds - (Date.now() - this.game.nextRoundTimerStartedAt)/1000;
     if(round) timeRemaining = Math.ceil(timeRemaining);
 
     return timeRemaining;
@@ -117,19 +111,19 @@ class Round {
         ...roundState,
         type: this.roundType,
         choices: this.choices,
-        trackToPlay: this.choices[this.correctChoice].preview_url,
-        number: this.roundNumber,
+        trackToPlay: this.songToPlayUrl,
+        number: this.number,
         remainingTime: this.getTimeRemaining(),
         choosenOption: this.playersAnswers[targetPlayer.username] ? this.playersAnswers[targetPlayer.username].choosenOption : false
       }
     } else if (this.currentPhase === 'results') {
       roundState = {
         ...roundState, 
-        number: this.roundNumber,
+        number: this.number,
         playersThatGotItRight: this.playersThatGotItRight,
         correctChoice: this.correctChoice,
         timeRemainingForNextRound: this.getTimeRemainingForNextRound(),
-        lastOne: this.roundNumber == (this.game.numberOfRounds - 1)
+        lastOne: this.number == (this.game.numberOfRounds - 1)
       }
     }
     return roundState;
@@ -138,11 +132,13 @@ class Round {
   handleChoice(player, choice) {
     if(this.currentPhase !== 'playing' || this.playersAnswers[player.username]) return;
 
-    this.playersAnswers[player.username] = {
-      gotItRight: choice == this.correctChoice,
-      choosenOption: choice,
-      score: choice == this.correctChoice ? Math.ceil((this.getTimeRemaining(false)/this.game.timePerRound) * 200 ) + 100 : 0
-    }
+    const gotItRight = choice == this.correctChoice;
+
+    const score = gotItRight ?
+      Math.max(Math.ceil((this.getTimeRemaining(false)/this.game.timePerRound) * 200 ) + 100, 100) : 0;
+
+    this.playersAnswers[player.username] = {gotItRight, choosenOption: choice, score};
+
   }
 }
 

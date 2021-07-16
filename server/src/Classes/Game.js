@@ -1,11 +1,14 @@
 const Spotify = require('./Spotify');
 const Round = require('./Round');
 
+const TIME_BETWEEN_ROUNDS = 4;
+
 class Game {
   constructor(room) {
+    this.timeBetweenRounds = TIME_BETWEEN_ROUNDS;
+
     this.room = room;
     this.started = false;
-    this.rounds = [];
     this.currentRound;
   }
 
@@ -31,7 +34,7 @@ class Game {
 
       this.playlistTracks = tracks;
 
-      this.startRound(0);
+      this.scheduleNextRound(true);
     })
   }
 
@@ -41,20 +44,39 @@ class Game {
     this.room.syncRoomState();
   }
 
-  startRound(roundNumber) {
-    if(roundNumber >= this.numberOfRounds) {
-      this.endGame();
-      return;
-    }
-    const round = new Round(roundNumber, this);
-    this.rounds.push(round);
-    this.currentRound = round;
-    round.startRound();
+  scheduleNextRound(isFirstRound = false) {
+    const nextRoundNumber = isFirstRound ? 0 : this.currentRound.number + 1;
+
+    const wasThisTheLastRound = nextRoundNumber >= this.numberOfRounds;
+ 
+    if(!wasThisTheLastRound) this.nextRound = new Round(nextRoundNumber, this);
+
+    this.nextRoundTimerStartedAt = Date.now();
+    setTimeout(() => {
+      //Check if room still exists
+      if(this.room.constructor.rooms[this.room.code]){
+        if(wasThisTheLastRound) {
+          this.endGame();
+        } else {
+          this.startNextRound();
+        }
+      }
+    }, isFirstRound ? 0 : this.timeBetweenRounds * 1000);
+  }
+
+  startNextRound() {
+    this.currentRound = this.nextRound;
+    this.nextRound = false;
+
+    this.currentRound.startRound();
   }
 
   getGameState(targetPlayer = false){
     let gameState = {};
-    if(this.room.currentlyIn == "game") gameState.currentRound = this.currentRound.getRoundState(targetPlayer);
+    if(this.room.currentlyIn == "game"){
+      gameState.currentRound = this.currentRound.getRoundState(targetPlayer);
+      if(this.nextRound) gameState.nextRoundSongUrl = this.nextRound.songToPlayUrl;
+    } 
     else if(this.room.currentlyIn == "finalResults") gameState.results = this.room.getPlayerList();
 
     return gameState;
