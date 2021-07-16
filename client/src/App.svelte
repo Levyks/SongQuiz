@@ -24,10 +24,6 @@ function handleRouteEvent(event){
 	}
 }
 
-function getRoomData(){
-	return roomData;
-}
-
 const createOrJoinGameRoute = wrap({
 	component: CreateOrJoinGame,
 	props: { socket }
