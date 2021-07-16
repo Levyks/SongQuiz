@@ -132,6 +132,7 @@
   }
 
   function handleChoiceClick(e) {
+    if(choosenChoice) return;
     choosenChoice = parseInt(e.target.value);
     socket.emit("roundChoice", choosenChoice);
   }
