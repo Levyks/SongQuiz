@@ -54,7 +54,7 @@
 		if(
 			storedLastRoomJoined != data.roomCode || 
 			storedPlayerData.username != data.playerData.username ||
-			storedPlayerData.token != data.playerData.token)
+			(data.playerData.token && storedPlayerData.token != data.playerData.token))
 			{
 			localStorage.setItem('lastRoomJoined', data.roomCode);
 			localStorage.setItem('playerData', JSON.stringify(data.playerData) );
