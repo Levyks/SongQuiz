@@ -55,7 +55,8 @@
         "finalResultsIn": "Resultados finais em {seconds}"
       },
       "clickToPlaySong": "Clique para tocar a música"
-    }
+    },
+    "startsIn": "O jogo começa em"
   },
 
   "leftWindow": {

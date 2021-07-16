@@ -20,7 +20,7 @@ class Round {
   }
 
   generateChoices(numberOfChoices) {
-    const numberOfValidSongs = this.game.numberOfValidSongs;
+    const numberOfValidSongs = this.game.playlist.tracks.length;
     
     //Generates an array of {numberOfChoices} unique indexes
     const choicesIndexes = [];
@@ -36,7 +36,7 @@ class Round {
     //Generates an array with the songs with the indexes previously generated
     this.choices = [];
     choicesIndexes.forEach(choiceIndex => {
-      this.choices.push(this.game.playlistTracks[choiceIndex]);
+      this.choices.push(this.game.playlist.tracks[choiceIndex]);
     });
 
     this.songToPlayUrl = this.choices[this.correctChoice].preview_url;
@@ -73,8 +73,7 @@ class Round {
     this.playersThatGotItRight.sort((a, b) => a.score < b.score ? 1 : -1);
 
     //Remove song that was just played from the list of available songs in the game (so it does not repeat)
-    this.room.game.playlistTracks.splice(this.correctChoiceIndex, 1);
-    this.game.numberOfValidSongs -= 1;
+    this.game.playlist.tracks.splice(this.correctChoiceIndex, 1);
     
     //Schedules next round
     this.game.scheduleNextRound();
@@ -90,13 +89,6 @@ class Round {
 
   getTimeRemaining(round = true) {
     let timeRemaining = this.game.timePerRound - (Date.now() - this.startedAt)/1000;
-    if(round) timeRemaining = Math.ceil(timeRemaining);
-
-    return timeRemaining;
-  }
-
-  getTimeRemainingForNextRound(round = true) {
-    let timeRemaining = this.game.timeBetweenRounds - (Date.now() - this.game.nextRoundTimerStartedAt)/1000;
     if(round) timeRemaining = Math.ceil(timeRemaining);
 
     return timeRemaining;
@@ -122,7 +114,6 @@ class Round {
         number: this.number,
         playersThatGotItRight: this.playersThatGotItRight,
         correctChoice: this.correctChoice,
-        timeRemainingForNextRound: this.getTimeRemainingForNextRound(),
         lastOne: this.number == (this.game.numberOfRounds - 1)
       }
     }

@@ -1,4 +1,3 @@
-const Spotify = require('./Spotify');
 const Round = require('./Round');
 
 const TIME_BETWEEN_ROUNDS = 4;
@@ -13,29 +12,22 @@ class Game {
   }
 
   startGame() {
+    if(!this.room.playlist || !this.room.playlist.info.set || this.room.playlist.info.tooSmall) return;
+
+    this.playlist = {
+      info: this.room.playlist.info,
+      tracks: this.room.playlist.tracks.slice()
+    }
+
+    this.numberOfRounds = this.room.numberOfRounds;
+    this.timePerRound = this.room.timePerRound;
+
+    this.scheduleNextRound(true);
 
     this.room.log("Starting Game");
     this.room.currentlyIn = 'game';
     this.room.syncRoomState();
 
-    if(!this.room.playlistSet || this.room.playlistTooSmall) return;
-
-    this.playlistUrl = this.room.playlistUrl;
-    this.playlist = this.room.playlist;
-    this.numberOfValidSongs = this.playlist.info.valid_songs;
-
-    this.numberOfRounds = this.room.numberOfRounds;
-    this.timePerRound = this.room.timePerRound;
-
-    this.room.log("Starting to fetch tracks");
-
-    Spotify.getPlaylistTracks(this.playlistUrl).then(tracks => {
-      this.room.log("All tracks fetched");
-
-      this.playlistTracks = tracks;
-
-      this.scheduleNextRound(true);
-    })
   }
 
   endGame() {
@@ -61,27 +53,41 @@ class Game {
           this.startNextRound();
         }
       }
-    }, isFirstRound ? 0 : this.timeBetweenRounds * 1000);
+    }, this.timeBetweenRounds * 1000);
   }
 
   startNextRound() {
     this.currentRound = this.nextRound;
     this.nextRound = false;
+    this.nextRoundTimerStartedAt = false;
 
     this.currentRound.startRound();
+  }
+
+  getTimeRemainingForNextRound(round = true) {
+    let timeRemaining = this.timeBetweenRounds - (Date.now() - this.nextRoundTimerStartedAt)/1000;
+    if(round) timeRemaining = Math.ceil(timeRemaining);
+
+    return timeRemaining;
   }
 
   getGameState(targetPlayer = false){
     let gameState = {};
     if(this.room.currentlyIn == "game"){
-      gameState.currentRound = this.currentRound.getRoundState(targetPlayer);
-      if(this.nextRound) gameState.nextRoundSongUrl = this.nextRound.songToPlayUrl;
+      if(this.started) {
+        gameState.currentRound = this.currentRound.getRoundState(targetPlayer);
+      }
+      if(this.nextRound) {
+        gameState.nextRoundSongUrl = this.nextRound.songToPlayUrl;
+      } 
+      if(this.nextRoundTimerStartedAt) {
+        gameState.timeRemainingForNextRound = this.getTimeRemainingForNextRound();
+      }
     } 
     else if(this.room.currentlyIn == "finalResults") gameState.results = this.room.getPlayerList();
 
     return gameState;
   }
-
 
 }
 

@@ -27,7 +27,13 @@
   $: trackRoomStateChange(roomState);
 
   function trackRoomStateChange(state) {
-    if(!state.game) return;
+
+    if(!state.game.currentRound) {
+      setNextRoundTimer();
+      setAudioElementSrc(state.game.nextRoundSongUrl);
+      return;
+    }
+
     switch(state.game.currentRound.currentPhase) {
       case 'playing':
         choosenChoice = state.game.currentRound.choosenOption;
@@ -58,15 +64,7 @@
 
         choosenChoice = false;
 
-        if(!nextRoundTimer){
-          nextRoundStartsIn = state.game.currentRound.timeRemainingForNextRound;
-          nextRoundTimer = setInterval(() => {
-            nextRoundStartsIn-=1;
-            if(nextRoundStartsIn <= 0){
-              clearInterval(nextRoundTimer);
-            } 
-          }, 1000);
-        }  
+        setNextRoundTimer();
 
         if(state.targeted) {
           showRoundResults = true;
@@ -89,6 +87,18 @@
       default:
         break;
     }
+  }
+
+  function setNextRoundTimer() {
+    if(!nextRoundTimer){
+      nextRoundStartsIn = roomState.game.timeRemainingForNextRound;
+      nextRoundTimer = setInterval(() => {
+        nextRoundStartsIn-=1;
+        if(nextRoundStartsIn <= 0){
+          clearInterval(nextRoundTimer);
+        } 
+      }, 1000);
+    }  
   }
 
   function setAudioElementSrc(url) {
@@ -158,10 +168,13 @@
 </script>
 
 <div class="game-wrapper">
-  {#if !roomState.game}
-    <div class="spinner-border" role="status">
-      <span class="sr-only">{$_("misc.loading")}...</span>
+  {#if !roomState.game.currentRound}
+    <div></div>
+    <div>
+      <h2>{$_("game.startsIn")}</h2>
+      <h1>{nextRoundStartsIn}</h1>
     </div>
+    <div></div>
   {:else if roomState.game.currentRound.currentPhase == 'playing' || !showRoundResults}
 
     <div class="game-header">
@@ -214,7 +227,7 @@
 </div>
 
 <audio bind:this={audioElement}
- src={roomState.game && roomState.game.currentRound.trackToPlay}
+ src={roomState.game.currentRound && roomState.game.currentRound.trackToPlay}
  volume={volume/100}>
   <track kind="captions">
 </audio>

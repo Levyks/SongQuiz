@@ -7,12 +7,13 @@
 
   let isLoadingPlaylist = false;
 
-  let playlistUrl = roomState.playlist && roomState.playlist.info && roomState.playlist.info.href;
-  let lastPlaylistUrlFetched = playlistUrl;
-  let validPlaylistSet = false;
-
   let numberOfRounds = roomState.numberOfRounds;
   let lastNumberOfRounds = numberOfRounds;
+
+  let validPlaylistSet = roomState.playlist && roomState.playlist.info.set && !roomState.playlist.info.tooSmall;
+  
+  let playlistUrl = roomState.playlist && roomState.playlist.info.href;
+  let lastPlaylistUrlFetched = playlistUrl;
 
   let timePerRound = roomState.timePerRound;
   let lastTimePerRound = timePerRound;
@@ -27,6 +28,8 @@
 
     timePerRound = state.timePerRound;
     lastTimePerRound = timePerRound;
+
+    validPlaylistSet = state.playlist && state.playlist.info.set && state.playlist.info.tracksLoaded && !state.playlist.info.tooSmall;
 
     if(state.triggeredByPlaylistChange) isLoadingPlaylist = false;
   }
@@ -87,17 +90,30 @@
       <div class="input-group mb-1">
 
         <span class="form-control playlist-label" readonly>
+
         {#if roomState.playlist}
-          {#if roomState.playlistTooSmall}
-            <a class="text-danger" href={roomState.playlist.info.href} target="_blank">{roomState.playlist.info.name} | {$_("lobby.playlistMessages.validSongs", { values: {number: roomState.playlist.info.valid_songs} })} | {$_("lobby.playlistMessages.tooSmall")} </a>
-          {:else if roomState.playlist.status == 200}
-            <a href={roomState.playlist.info.href} target="_blank">{roomState.playlist.info.name} | {$_("lobby.playlistMessages.validSongs", { values: {number: roomState.playlist.info.valid_songs} })}</a>
-          {:else}
-            <span class="text-danger">{$_("lobby.playlistMessages.error", { values: {error: roomState.playlist.message} })}</span>
+
+          {#if roomState.playlist.info.set}
+
+            <a href={roomState.playlist.info.href} class:text-danger={roomState.playlist.info.tooSmall} target="_blank">
+              {roomState.playlist.info.name} 
+              {#if roomState.playlist.info.numberOfValidSongs}
+                | {$_("lobby.playlistMessages.validSongs", { values: {number: roomState.playlist.info.numberOfValidSongs} })}
+              {/if}
+              
+              {#if roomState.playlist.info.tooSmall}
+                | {$_("lobby.playlistMessages.tooSmall")}
+              {/if}
+            </a>  
+
+          {:else if roomState.playlist.info.error}
+            <span class="text-danger">{$_("lobby.playlistMessages.error", { values: {error: roomState.playlist.info.error.message || roomState.playlist.info.error.status} })}</span>
           {/if}
+
         {:else}
           {$_("lobby.playlistMessages.notSet")}
         {/if}
+
         </span>
         
         {#if isLoadingPlaylist}
@@ -156,7 +172,13 @@
 
   <div class=text-center>
   {#if playerData.isLeader}
-    <button class="btn btn-primary" on:click={startGame} disabled={!(roomState.playlist && roomState.playlist.status == 200 && !roomState.playlistTooSmall)} title={validPlaylistSet ? '' : $_("lobby.button.playlistNotSet")}>{$_("lobby.button.isLeader")}</button>
+    <button 
+      class="btn btn-primary" 
+      on:click={startGame} 
+      disabled={!validPlaylistSet} 
+      title={ validPlaylistSet ? '' : $_("lobby.button.playlistNotSet")}>
+        {$_("lobby.button.isLeader")}
+      </button>
   {:else}
     <button class="btn btn-primary" disabled>{$_("lobby.button.notLeader")}</button>
   {/if}

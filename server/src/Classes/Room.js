@@ -52,27 +52,68 @@ class Room {
     });
   }
 
-  async setPlaylist(playlistUrl = this.playlistUrl) {
+  setPlaylist(playlistUrl = this.playlistUrl) {
     
-    if(playlistUrl != this.playlistUrl) this.playlist = playlistUrl ? await Spotify.getPlaylistInfo(playlistUrl) : undefined;
-    this.playlistUrl = playlistUrl;
+    //Only run this code if it's a new playlist URL
+    if(playlistUrl != this.playlistUrl) {
+      this.playlistUrl = playlistUrl;
+      this.playlist = undefined;
 
-    this.playlistSet = this.playlist && this.playlist.status === 200;
-    this.playlistTooSmall = this.playlistSet && this.playlist.info.valid_songs < this.choicesPerRound + this.numberOfRounds - 1;
+      //Only run this if the URL is not an empty string
+      if(playlistUrl) {
+        Spotify.getPlaylistInfo(playlistUrl).then(info => {
+          this.playlist = {info};
+          this.playlist.info.set = true;
+          this.playlist.info.tracksLoaded = false;
 
-    if(this.playlistSet && !this.playlistTooSmall) {
-      this.log(`Playlist set succesfuly to ${this.playlist.info.name}`);
-    } else if(this.playlist) {
-      if (this.playlistTooSmall) {
-        this.log(`Playlist is too small`);
+          this.syncRoomState();
+
+          this.log(`Playlist info fetched, playlist: ${this.playlist.info.name}`);
+
+          Spotify.getPlaylistTracks(playlistUrl).then(tracks => {
+            this.playlist.tracks = tracks;
+            this.playlist.info.numberOfValidSongs = this.playlist.tracks.length;
+            this.playlist.info.tracksLoaded = true;
+            this.playlist.info.tooSmall = this.playlist.info.numberOfValidSongs < this.choicesPerRound + this.numberOfRounds - 1;
+
+            this.syncRoomState(true);
+
+            this.log(`Playlist tracks fetched, number of valid songs: ${this.playlist.info.numberOfValidSongs}`);
+            if(this.playlist.info.tooSmall) this.log("Playlist is too small");
+
+          });
+        }).catch(error => {
+          this.playlist = {
+            info: {
+              set: false
+            }
+          }
+          if(error.response) {
+            const status = error.response.status;
+            const message = (error.response.data && error.response.data.error && error.response.data.error.message) || error.response.message || error.response.statusText;
+            this.playlist.info.error = {status, message};
+          } else {
+            this.playlist.info.error = {
+              status: 500,
+              message: "Unknown Error"
+            }
+          }
+          this.syncRoomState(true);   
+
+          this.log(`Error while fetching playlist, ${this.playlist.info.error.status} | ${this.playlist.info.error.message}`);
+
+        });
       } else {
-        this.log(`Playlist not set, reason: Error ${this.playlist.status}`);
+        this.syncRoomState(true);
       }
-    } else {
-      this.log(`Playlist unset`);
-    }
 
-    this.syncRoomState(true);
+    //This code will run when this method is called without an URL (when the number of rounds update)
+    } else if (this.playlist && this.playlist.info.numberOfValidSongs) {
+      this.playlist.info.tooSmall = this.playlist.info.numberOfValidSongs < this.choicesPerRound + this.numberOfRounds - 1; 
+      this.syncRoomState(true);  
+
+      this.log(`Number of rounds updated, the playlist is ${this.playlist.info.tooSmall ? 'too small' : 'big enough'}`);
+    }
 
   }
 
@@ -80,7 +121,6 @@ class Room {
     if(isNaN(numberOfRounds)) return;
     this.numberOfRounds = Math.max(1, Math.ceil(numberOfRounds));
     this.setPlaylist();
-    this.syncRoomState();
   }
 
   setTimePerRound(timePerRound) {
@@ -197,16 +237,15 @@ class Room {
   getRoomState(triggeredByPlaylistChange = false, targetPlayer = false) {
     let roomState = {
       currentlyIn: this.currentlyIn,
-      playlist: this.playlist,
-      playlistTooSmall: !!this.playlistTooSmall,
+      playlist: this.playlist && {
+        info: this.playlist.info
+      },
+      game: this.game.getGameState(targetPlayer),
       numberOfRounds: this.numberOfRounds,
       timePerRound: this.timePerRound,
       targeted: !!targetPlayer,
       triggeredByPlaylistChange
     };
-    if(this.game.started) {
-      roomState.game = this.game.getGameState(targetPlayer);
-    }
 
     return roomState;
   }
