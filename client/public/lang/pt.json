@@ -14,7 +14,8 @@
   "room": {
     "doesNotExist": "A sala {code} não existe",
     "leaveConfirmation": "Você quer sair da sala?",
-    "playerAlreadyExists": "Já existe um jogador com esse nome nessa sala"
+    "playerAlreadyExists": "Já existe um jogador com esse nome nessa sala",
+    "connectionLost": "Conexão perdida, tentando reconectar"
   },
 
   "lobby": {

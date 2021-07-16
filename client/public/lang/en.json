@@ -14,7 +14,8 @@
   "room": {
     "doesNotExist": "Room {code} does not exist",
     "leaveConfirmation": "Do you want to leave the room?",
-    "playerAlreadyExists": "There's already a player with this username on this room"
+    "playerAlreadyExists": "There's already a player with this username on this room",
+    "connectionLost": "Connection lost, trying to reconnect"
   },
 
   "lobby": {

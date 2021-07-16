@@ -89,7 +89,7 @@
   <div class="room-wrapper">
     {#if lostConnection}
       <div class="app-window w-100 text-center">
-        <h1>Connection problems</h1>
+        <h1>{$_("room.connectionLost")}</h1>
         <div class="spinner-border" role="status">
           <span class="sr-only">{$_("misc.loading")}...</span>
         </div>
