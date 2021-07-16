@@ -71,14 +71,18 @@
           } 
         }, 1000);
 
-        setTimeout(() => {
-          if(audioElement){
-            audioElement.pause();
-            audioElement.currentTime = 0;
-          }
+        if(state.targeted) {
           showRoundResults = true;
-        }, 1000);
-
+        } else {
+          setTimeout(() => {
+            if(audioElement){
+              audioElement.pause();
+              audioElement.currentTime = 0;
+            }
+            showRoundResults = true;
+          }, 1000);
+        }
+        
         localStorage.setItem('defaultVolume', volume);
 
         break;

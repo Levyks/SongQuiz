@@ -201,6 +201,7 @@ class Room {
       playlistTooSmall: !!this.playlistTooSmall,
       numberOfRounds: this.numberOfRounds,
       timePerRound: this.timePerRound,
+      targeted: !!targetPlayer,
       triggeredByPlaylistChange
     };
     if(this.game.started) {
