@@ -33,7 +33,7 @@
       socket.on("connect", () => {
         console.log("Socket connected");
         socket.removeAllListeners("connect");
-        setTimeout(() => connectToRoom(params.roomCode, playerData), 1000);
+        connectToRoom(params.roomCode, playerData);
       });
     });
   } else {

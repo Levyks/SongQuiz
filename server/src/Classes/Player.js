@@ -32,8 +32,11 @@ class Player {
 
   setSocket(socket) {
     if(this.socket) {
+      this.socket.removeAllListeners('disconnect');
       this.socket.disconnect();
       delete this.socket;
+
+      this.room.currentlyConnectedPlayers -= 1;
     }
 
     this.socket = socket;
