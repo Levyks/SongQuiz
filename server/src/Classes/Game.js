@@ -51,9 +51,9 @@ class Game {
     round.startRound();
   }
 
-  getGameState(){
+  getGameState(targetPlayer = false){
     let gameState = {};
-    if(this.room.currentlyIn == "game") gameState.currentRound = this.currentRound.getRoundState()
+    if(this.room.currentlyIn == "game") gameState.currentRound = this.currentRound.getRoundState(targetPlayer);
     else if(this.room.currentlyIn == "finalResults") gameState.results = this.room.getPlayerList();
 
     return gameState;

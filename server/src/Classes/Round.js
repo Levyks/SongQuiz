@@ -94,23 +94,21 @@ class Round {
     this.room.syncPlayersData();
   }
 
-  getTimeRemaining(justStarted = false, round = true) {
-    if(justStarted) return this.game.timePerRound;
+  getTimeRemaining(round = true) {
     let timeRemaining = this.game.timePerRound - (Date.now() - this.startedAt)/1000;
     if(round) timeRemaining = Math.ceil(timeRemaining);
 
     return timeRemaining;
   }
 
-  getTimeRemainingForNextRound(justStarted = false, round = true) {
-    if(justStarted) return TIME_BETWEEN_ROUNDS;
+  getTimeRemainingForNextRound(round = true) {
     let timeRemaining = TIME_BETWEEN_ROUNDS - (Date.now() - this.nextRoundTimerStartedAt)/1000;
     if(round) timeRemaining = Math.ceil(timeRemaining);
 
     return timeRemaining;
   }
 
-  getRoundState(justStarted = false) {
+  getRoundState(targetPlayer = false) {
     let roundState = {
       currentPhase: this.currentPhase
     };
@@ -121,7 +119,8 @@ class Round {
         choices: this.choices,
         trackToPlay: this.choices[this.correctChoice].preview_url,
         number: this.roundNumber,
-        remainingTime: this.getTimeRemaining(justStarted)
+        remainingTime: this.getTimeRemaining(),
+        choosenOption: this.playersAnswers[targetPlayer.username] ? this.playersAnswers[targetPlayer.username].choosenOption : false
       }
     } else if (this.currentPhase === 'results') {
       roundState = {
@@ -141,7 +140,8 @@ class Round {
 
     this.playersAnswers[player.username] = {
       gotItRight: choice == this.correctChoice,
-      score: choice == this.correctChoice ? Math.ceil((this.getTimeRemaining(false, false)/this.game.timePerRound) * 200 ) + 100 : 0
+      choosenOption: choice,
+      score: choice == this.correctChoice ? Math.ceil((this.getTimeRemaining(false)/this.game.timePerRound) * 200 ) + 100 : 0
     }
   }
 }

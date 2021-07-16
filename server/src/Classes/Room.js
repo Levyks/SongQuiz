@@ -159,7 +159,7 @@ class Room {
 
       player.socket.join(this.code);
 
-      this.syncRoomState(false, socket);
+      this.syncRoomState(false, player);
 
       this.syncPlayersData();
 
@@ -187,7 +187,14 @@ class Room {
     return playerList;
   }
 
-  syncRoomState(triggeredByPlaylistChange = false, socket = this.ioChannel) {
+  syncRoomState(triggeredByPlaylistChange = false, targetPlayer = false) {
+    //If there's a targeted player, only send to him, if not, send to the entire channel
+    const socket = targetPlayer ? targetPlayer.socket : this.ioChannel;
+    
+    socket.emit('syncRoomState', this.getRoomState(triggeredByPlaylistChange, targetPlayer));
+  }
+
+  getRoomState(triggeredByPlaylistChange = false, targetPlayer = false) {
     let roomState = {
       currentlyIn: this.currentlyIn,
       playlist: this.playlist,
@@ -197,10 +204,10 @@ class Room {
       triggeredByPlaylistChange
     };
     if(this.game.started) {
-      roomState.game = this.game.getGameState();
+      roomState.game = this.game.getGameState(targetPlayer);
     }
 
-    socket.emit('syncRoomState', roomState);
+    return roomState;
   }
 
   log(message) {

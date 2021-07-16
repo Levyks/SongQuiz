@@ -31,7 +31,7 @@
     if(!state.game) return;
     switch(state.game.currentRound.currentPhase) {
       case 'playing':
-        choosenChoice = false;
+        choosenChoice = state.game.currentRound.choosenOption;
         correctChoice = false;
         wrongChoice = false;
 
