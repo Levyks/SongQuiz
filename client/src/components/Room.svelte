@@ -16,6 +16,7 @@
   };
 
   let roomIsLoading = true;
+  let lostConnection = false;
 
   let playersData = [];
   
@@ -24,9 +25,16 @@
 
   if(params.roomCode == lastRoomJoined && playerData){
     connectToRoom(params.roomCode, playerData);
-    socket.on("connect", () => {
-      console.log("Socket connected");
-      connectToRoom(params.roomCode, playerData);
+    
+    socket.on("disconnect", () => {
+      console.log("Socket disconnected");
+      lostConnection = true;
+
+      socket.on("connect", () => {
+        console.log("Socket connected");
+        socket.removeAllListeners("connect");
+        setTimeout(() => connectToRoom(params.roomCode, playerData), 1000);
+      });
     });
   } else {
     push(`/play/join/${params.roomCode}`);
@@ -37,6 +45,7 @@
   }
 
   socket.on('connectToRoomResponse', response => {
+    lostConnection = false;
     if(response.status === 200){
       playerData = response.playerData;
       localStorage.setItem('playerData', JSON.stringify(response.playerData) );
@@ -78,7 +87,14 @@
   </div>
 
   <div class="room-wrapper">
-    {#if roomIsLoading}
+    {#if lostConnection}
+      <div class="app-window w-100 text-center">
+        <h1>Connection problems</h1>
+        <div class="spinner-border" role="status">
+          <span class="sr-only">{$_("misc.loading")}...</span>
+        </div>
+      </div>    
+    {:else if roomIsLoading}
       <div class="app-window w-100 text-center">
         <div class="spinner-border" role="status">
           <span class="sr-only">{$_("misc.loading")}...</span>
