@@ -20,11 +20,11 @@
       <li class="list-group-item">
         <div>
           <i class="fas fa-circle" class:connected={player.isConnected} class:disconnected={!player.isConnected}></i>
-          {#if true || roomState.currentlyIn == "game"}<span>{i+1}.</span>{/if}
+          {#if roomState.currentlyIn == "game"}<span>{i+1}.</span>{/if}
           <strong>{player.username}</strong>
           {#if player.isLeader}<i class="fas fa-crown text-warning"></i>{/if}
         </div>
-        {#if true || roomState.currentlyIn == "game"}<span class="mx-1" >{$_('rightWindow.players.points', {values: {points: player.score}})}</span>{/if}
+        {#if roomState.currentlyIn == "game"}<span class="mx-1" >{$_('rightWindow.players.points', {values: {points: player.score}})}</span>{/if}
       </li>
     {/each}
   </ul>
