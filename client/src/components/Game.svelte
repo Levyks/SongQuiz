@@ -164,7 +164,7 @@
   }
 
   function handleChoiceClick(e) {
-    if(choosenChoice) return;
+    if(choosenChoice !== false) return;
     choosenChoice = parseInt(e.target.value);
     socket.emit("roundChoice", choosenChoice);
   }
@@ -208,7 +208,7 @@
                 
               value={i} 
               on:click={handleChoiceClick}
-              disabled={!!choosenChoice || roomState.game.currentRound.currentPhase == 'results'}>
+              disabled={choosenChoice !== false || roomState.game.currentRound.currentPhase == 'results'}>
                 {choiceButtonText}
               </button>
           {/each}
