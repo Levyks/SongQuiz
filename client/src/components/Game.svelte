@@ -9,8 +9,6 @@
   export let roomState;
   export let playerData;
 
-  console.log(playerData);
-
   let choicesButtonsData = [];
 
   let choosenChoice = false;
