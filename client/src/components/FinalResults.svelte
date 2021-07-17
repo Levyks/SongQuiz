@@ -1,6 +1,8 @@
 <script>
   import { _ } from '../services/i18n.js';
 
+  import Results from './Results.svelte';
+
   export let socket;
   export let playerData;
   export let roomState;
@@ -18,18 +20,7 @@
     <hr>
   </div>
   
-  <div class="results-main">
-    <ul class="list-group">
-      {#each roomState.game.results as player, i}
-      <li class="list-group-item">
-        {i+1}º {player.username} - {player.score} pts
-        {#if [0,1,2].includes(i)}
-          <i class="fas fa-medal" class:gold={i==0} class:silver={i==1} class:bronze={i==2}></i>
-        {/if}
-      </li>
-      {/each}
-    </ul>
-  </div>
+  <Results results={roomState.game.results} {playerData}/>
 
   <div>
     {#if playerData.isLeader}
@@ -50,15 +41,5 @@
     height: 100%;
   }
 
-  .gold{
-    color: #ffc107;
-  }
-
-  .silver{
-    color: #e5e5e5;
-  }
-
-  .bronze{
-    color: #cd7f32;
-  }
+  
 </style>

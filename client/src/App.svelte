@@ -4,10 +4,12 @@ import { wrap } from 'svelte-spa-router/wrap';
 import { io } from 'socket.io-client';
 
 import { setupI18n, isLocaleLoaded } from './services/i18n';
+import { isMobile } from './stores.js';
 
 import CreateOrJoinGame from './components/CreateOrJoinGame.svelte';
 import NotFound from './components/NotFound.svelte';
 import Room from './components/Room.svelte';
+import Loading from './components/Loading.svelte';
 
 setupI18n();
 
@@ -44,37 +46,105 @@ const routes = {
 	'*': NotFound
 };
 
+function handleWindowResize() {
+	isMobile.set(window.innerWidth < 800);
+}
+
+window.addEventListener("resize", handleWindowResize);
+
+handleWindowResize();
+
 </script>
 
 {#if $isLocaleLoaded}
 	<Router {routes} on:routeEvent={handleRouteEvent} />
 {:else}
-	<main>
-  	<div class="jumbotron">
-			<div class="spinner-border" role="status">
-				<span class="sr-only">Loading...</span>
-			</div>
-		</div>
-	</main>
+	<div class="loading-wrapper">
+		<div class="app-card center-xy">
+			<Loading />
+		</div> 
+	</div>
 {/if}
 
 <style>
-	:global(body) {
-		background-color: #39CCCC;
+	:global(html) {
+		height: 100%;
 	}
 
-	main {
-		display: flex;
-		justify-content: center;
-		align-items: center;
+	:global(body) {
+		background-color: #39CCCC;
+		height: 100%;
+		padding: 10px;
+	}
+	
+	:global(main) {
 		height: 100%;	
 	}
 
-	.spinner-border{
-		margin: 0 10px;
-		width: 192px;
-		height: 192px;
-		border-width: 0.5rem;
+	:global(.app-card) {
+    border-radius: 10px;
+    margin: 10px 10px;
+    padding: 10px;
+    background-color: white;
+  }
+
+	:global(.center-xy) {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
 	}
+
+	:global(.btn-icon) {
+		padding: 4px 8px;
+		font-size: 1.5rem;
+	}
+
+	:global(.highlighted-item) {
+		background-color: #d2e5ff;
+	}
+
+	:global(.gold){
+    color: #ffc107;
+  }
+
+  :global(.silver){
+    color: #c0c0c0;
+  }
+
+  :global(.bronze){
+    color: #cd7f32;
+  }
+
+	.loading-wrapper {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		height: 100%;
+	}
+
+	.app-card {
+		flex-grow: 1;
+	}
+	
+	@media only screen and (min-width: 800px) {
+		:global(.mobile-only) {
+			display: none;
+		}
+	}
+
+	@media only screen and (max-width: 799px) {
+		:global(.mobile-hide) {
+			display: none;
+		}
+
+		:global(.app-card) {
+			border-radius: 10px;
+			margin: 10px 0;
+			padding: 10px;
+			background-color: white;
+  	}
+	}
+	
 </style>
 
