@@ -1,12 +1,16 @@
 <script>
   import { push } from 'svelte-spa-router';
   import { _ } from '../services/i18n.js';
+  import Modal from "sv-bootstrap-modal";
+
+  import { openModal, isMobile } from '../stores.js';
 
   import Lobby from './Lobby.svelte';
   import Game from './Game.svelte';
   import FinalResults from './FinalResults.svelte';
-  import LeftWindow from './LeftWindow.svelte';
-  import RightWindow from './RightWindow.svelte';
+  import SongHistory from './SongHistory.svelte';
+  import Players from './Players.svelte';
+  import Loading from './Loading.svelte';
 
   export let params;
   export let socket;
@@ -65,7 +69,10 @@
       push('/play');
     }
   }
-
+  
+  function handleCloseModalClick(){
+    openModal.set(false);
+  }
 
   socket.on('syncRoomState', data => {
     roomState = data;
@@ -79,111 +86,154 @@
     playersData = players;
   });
 
+  let songsHistory = [];
+
+  socket.on('addSongToHistory', addSongToHistory);
+
+  function addSongToHistory(song) {
+    const name = song.name;
+   
+    let artists = "";
+    song.artists.forEach(artist => {
+      artists+=artist.name + ', ';
+    });
+    artists = artists.slice(0, -2);
+    if(artists.length > 40){
+      artists = artists.slice(0, 40) + '...';
+    }
+
+    const albumImageUrl = song.album.images[song.album.images.length-1].url;   
+
+    const href = song.external_urls.spotify;
+
+    songsHistory.unshift({name, artists, albumImageUrl, href});
+    if(songsHistory.length > 10) songsHistory.pop();
+    songsHistory = songsHistory;
+  }
+
 </script>
 
-<main>
+<div class="room-wrapper">
   <div>
-    <button class="btn leave-btn" on:click={handleLeaveClick}><i class="fas fa-arrow-left"></i></button>
+    <button class="btn icon-btn" on:click={handleLeaveClick}><i class="fas fa-arrow-left"></i></button>
   </div>
 
-  <div class="room-wrapper">
+  <div class="room-content">
     {#if lostConnection}
-      <div class="app-window w-100 text-center">
-        <h1>{$_("room.connectionLost")}</h1>
-        <div class="spinner-border" role="status">
-          <span class="sr-only">{$_("misc.loading")}...</span>
-        </div>
+      <div class="app-card center-xy">
+        <h3 class="mb-5">{$_("room.connectionLost")}</h3>
+        <Loading />
       </div>    
     {:else if roomIsLoading}
-      <div class="app-window w-100 text-center">
-        <div class="spinner-border" role="status">
-          <span class="sr-only">{$_("misc.loading")}...</span>
-        </div>
+      <div class="app-card center-xy">
+        <Loading />
       </div>
     {:else}
-    <div class="left-window app-window">
-      <LeftWindow {socket} />
-    </div>
-    <div class="main-window app-window">
-      {#if roomState.currentlyIn == "lobby" }
-      <Lobby {socket} {playerData} {roomState} />
-      {:else if roomState.currentlyIn == "game"}
-      <Game {socket} {roomState}/>
-      {:else if roomState.currentlyIn == "finalResults"}
-      <FinalResults {socket} {playerData} {roomState}/>
+      {#if !$isMobile}
+        <div class="left-card app-card mobile-hide">
+          <SongHistory {songsHistory} />
+        </div>
       {/if}
-    </div>
-    <div class="right-window app-window">
-      <RightWindow {roomState} {playersData} roomCode={params.roomCode} />
-    </div>
+      <div class="main-card app-card">
+        {#if roomState.currentlyIn == "lobby" }
+        <Lobby {socket} {playerData} {roomState} />
+        {:else if roomState.currentlyIn == "game"}
+        <Game {socket} {playerData} {roomState}/>
+        {:else if roomState.currentlyIn == "finalResults"}
+        <FinalResults {socket} {playerData} {roomState}/>
+        {/if}
+      </div>
+      {#if !$isMobile}
+        <div class="right-card app-card mobile-hide">
+          <Players {roomState} {playersData} roomCode={params.roomCode} />
+        </div>
+      {/if}
     {/if}
   </div>
-</main>
+</div>
+
+<div class="modal-wrapper">
+  <Modal bind:open={$openModal} dialogClasses="modal-dialog-centered">
+    <div class="text-right">
+      <button class="btn icon-btn" on:click={handleCloseModalClick}>&#x2715;</button>
+    </div>
+    {#if $openModal === "history"}
+      <SongHistory {songsHistory} />
+    {:else if $openModal ==="players"}
+      <Players {roomState} {playersData} roomCode={params.roomCode} />
+    {/if}
+  </Modal>
+</div>
 
 <style>
   .room-wrapper {
+    display: flex;
+    flex-flow: column;
+    height: 100%;
+  }
+
+  .room-content {
+    flex: 1 1 auto;
     text-align: center;
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
   }
 
-  .main-window {
-    min-height: 450px;
+  .modal-wrapper :global(.modal-dialog) {
+    display: flex;
+    flex-flow: column; 
+    height: 0;
+  }
+
+  .modal-wrapper :global(.modal-content) {
+    flex-grow: 1;
+    padding: 10px;  
+  }
+
+  .main-card {
     flex-grow: 2!important;
   }
 
-  .app-window {
+  .app-card {
     flex-basis: 0;
     flex-grow: 1;
     flex-shrink: 1;
-    border-radius: 10px;
-    margin: 10px 10px;
-    padding: 10px;
-    min-width: 300px;
-    height: 600px;
-    background-color: white;
   }
 
-  .spinner-border {
-    width: 192px;
-    height: 192px;
-    border-width: 0.5em;
-  }
-
-  .leave-btn {
-    margin: 0;
+  .icon-btn {
+    margin: 0 5px;
+    padding: 0;
+    border: none;
     font-size: 30px;
   }
 
   @media only screen and (max-width: 1200px) {
-    .main-window {
+    .main-card {
       order: -1;
-      flex: 0 0 100%;
+      flex-basis: 100%!important;
+      min-height: 400px;
     }
 
-    .left-window {
-      margin-left: 0;
+    .left-card {
+      flex-basis: 25%!important;
+      max-height: 400px;
     }
 
-    .right-window {
-      margin-right: 0;
+    .right-card {
+      max-height: 400px;
     }
 
-    .app-window {
-      height: auto;
-    }
   }
 
-  @media only screen and (max-width: 700px) {
-    .app-window {
-      flex: 0 0 100%;
+  @media only screen and (max-width: 800px) {
+    .main-card {
+      height: auto;
     }
-    .left-window {
-      margin-right: 0;
+
+    .app-card {
+      flex-basis: 100%;
     }
-    .right-window {
-      margin-left: 0;
-    }
+
   }
 </style>

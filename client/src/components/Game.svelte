@@ -1,9 +1,15 @@
 <script>
   import { onMount } from 'svelte';
   import { _ } from '../services/i18n.js';
+
+  import MainCardHeader from './MainCardHeader.svelte';
+  import Results from './Results.svelte';
   
   export let socket;
   export let roomState;
+  export let playerData;
+
+  console.log(playerData);
 
   let choicesButtonsData = [];
 
@@ -169,7 +175,7 @@
 
 <div class="game-wrapper">
   {#if !roomState.game.currentRound}
-    <div></div>
+    <MainCardHeader/>
     <div>
       <h2>{$_("game.startsIn")}</h2>
       <h1>{nextRoundStartsIn}</h1>
@@ -177,14 +183,15 @@
     <div></div>
   {:else if roomState.game.currentRound.currentPhase == 'playing' || !showRoundResults}
 
-    <div class="game-header">
-      <h2>{$_("game.round.label", { values: { round: roomState.game.currentRound.number+1 }})}</h2>
+    <div>
+      <MainCardHeader label={$_("game.round.label", { values: { round: roomState.game.currentRound.number+1 }})} />
 
       {#if timeRemaining}
-      <h3 class="text-secondary">{$_("game.round.remainingTime", { values: {seconds: timeRemaining} })}</h3>
+        <h3 class="text-secondary">{$_("game.round.remainingTime", { values: {seconds: timeRemaining} })}</h3>
       {/if}
-      
+
       <hr>
+
       <h2>{roomState.game.currentRound.type == "artist" ? $_("game.round.type.artist") : $_("game.round.type.song")}</h2>
     </div>
 
@@ -213,15 +220,8 @@
 
     <input type="range" class="volume-input" value={volume} on:input={handleVolumeInput} min="0" max="100">
   {:else if roomState.game.currentRound.currentPhase == 'results'}
-    <h3>{$_("game.round.results.label")}</h3>
-    <ul class="list-group">
-      {#each roomState.game.currentRound.playersThatGotItRight as player, i}
-      <li class="list-group-item">{i+1}º {player.username} - {player.score} pts</li>
-      {/each}
-      {#if !roomState.game.currentRound.playersThatGotItRight.length}
-      <li class="list-group-item">{$_("game.round.results.noOneCorrect")}</li>
-      {/if}
-    </ul>
+    <MainCardHeader label={$_("game.round.results.label")}/>
+    <Results results={roomState.game.currentRound.playersThatGotItRight} {playerData}/>
     <h4 class="text-secondary">{$_(roomState.game.currentRound.lastOne ? "game.round.results.finalResultsIn" : "game.round.results.nextRoundIn", { values: {seconds: nextRoundStartsIn} })}</h4>
   {/if}
 </div>
@@ -244,6 +244,8 @@
   .choice-btn {
     width: 100%;
     border-color: rgb(0 0 0 / 50%);
+    min-height: 60px;
+    margin-bottom: 10px;
   }
 
   .spinner-border {
@@ -257,9 +259,9 @@
     width: 100%;
   }
 
-  @media only screen and (max-width: 700px) {
+  @media only screen and (max-width: 800px) {
     .choice-btn {
-      line-height: 2.5;
+      min-height: 80px;
     }
   }
 

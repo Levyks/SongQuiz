@@ -1,6 +1,8 @@
 <script>
   import { _ } from '../services/i18n.js';
 
+  import MainCardHeader from './MainCardHeader.svelte';
+
   export let socket
   export let playerData;
   export let roomState;
@@ -76,9 +78,9 @@
 </script>
 
 <div class="lobby-wrapper">
-  <div class="text-center">
-    <h2>{$_("lobby.label")}</h2>
-  </div>
+  
+  <MainCardHeader label={$_("lobby.label")} />
+
   <div class="lobby-main">
     <div class="form-group">
       <label for="username-input">{$_("lobby.inputLabels.username")}</label>
