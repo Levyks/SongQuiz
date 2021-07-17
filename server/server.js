@@ -11,27 +11,41 @@ const io = require("socket.io")(httpServer, {
   }
 });
 
+const fs = require('fs');
+
 app.use(cors());
 
+app.use(express.static('./public'));
 app.use(express.static('../client/public'));
 
-const Room = require("./src/Classes/Room");
-const Spotify = require('./src/Classes/Spotify');
+mockMisc = JSON.parse(fs.readFileSync('./src/mock/mock-misc.json'));
+mockStates = JSON.parse(fs.readFileSync('./src/mock/mock-states.json'));
 
-Room.io = io;
+app.use('/mock/set', (req, res) => {
+  io.emit("syncRoomState", mockStates[req.query.to]);
+  res.sendStatus(200);
+});
 
 io.on('connection', socket => {
-  socket.on("initialSetup", data => {
-    switch(data.action){
-      case "createRoom":
-        new Room(socket, data.username);
-        break;
-      case "connectToRoom":
-        Room.findRoomAndConnect(data, socket);
+  socket.onAny((eventName, data) => {
+    switch(eventName) {
+      case "initialSetup":
+        if(data.action === 'connectToRoom') {
+          socket.emit("connectToRoomResponse", mockMisc["connectToRoomResponse"]);
+          socket.emit("syncRoomState", mockStates["lobby"]);
+          socket.emit("syncPlayersData", mockMisc["syncPlayersData"]);
+          for(let i = 0; i<10; i++) {
+            setTimeout(() => {
+              socket.emit("addSongToHistory", mockMisc["addSongToHistory"]);
+            }, i*100);
+            
+          }
+        }
         break;
       default:
         break;
     }
+    //console.log(eventName, data);
   });
 });
 

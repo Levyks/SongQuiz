@@ -1,0 +1,76 @@
+{
+  "connectToRoomResponse": {
+    "status": 200,
+    "roomCode": "0042",
+    "playerData": {
+      "username": "Player",
+      "score": 0,
+      "isLeader": false,
+      "isConnected": true,
+      "token": "50l0n64nd7h4nk5f0r4ll7h3f15h"
+    
+    }
+  },
+  "syncPlayersData": [
+    {
+      "username": "Player 1",
+      "score": 1214,
+      "isLeader": false,
+      "isConnected": true
+    },
+    {
+      "username": "Player 2",
+      "score": 1155,
+      "isLeader": false,
+      "isConnected": true
+    },
+    {
+      "username": "Player 3",
+      "score": 1008,
+      "isLeader": false,
+      "isConnected": true
+    },
+    {
+      "username": "Player 4",
+      "score": 987,
+      "isLeader": false,
+      "isConnected": true
+    },
+    {
+      "username": "Player 5",
+      "score": 912,
+      "isLeader": false,
+      "isConnected": true
+    },
+    {
+      "username": "Player 6",
+      "score": 883,
+      "isLeader": false,
+      "isConnected": true
+    }
+  ],
+  "addSongToHistory": {
+    "album": {
+      "images": [
+        {
+          "height": 64,
+          "url": "https://i.scdn.co/image/ab67616d000048515755e164993798e0c9ef7d7a",
+          "width": 64
+        }
+      ]
+    },
+    "artists": [
+      {
+        "external_urls": {
+          "spotify": "https://open.spotify.com/artist/0gxyHStUsqpMadRV0Di1Qt"
+        },
+        "name": "Rick Astley"
+      }
+    ],
+    "external_urls": {
+      "spotify": "https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT"
+    },
+    "name": "Never Gonna Give You Up",
+    "preview_url": "https://p.scdn.co/mp3-preview/0b6da17f858f104337fac626c4bac972d3947564?cid=774b29d4f13844c495f206cafdad9c86"
+  }
+}

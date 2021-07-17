@@ -1,0 +1,175 @@
+{
+  "lobby": {
+    "currentlyIn": "lobby",
+    "playlist": {
+      "info": {
+        "name": "Some playlist",
+        "href": "https://github.com/Levyks/SongQuiz",
+        "set": true,
+        "tracksLoaded": true,
+        "numberOfValidSongs": 42,
+        "tooSmall": false
+      }
+    },
+    "game": {},
+    "numberOfRounds": 10,
+    "timePerRound": 15,
+    "targeted": false,
+    "triggeredByPlaylistChange": true
+  },
+
+  "startingGame": {
+    "currentlyIn": "game",
+    "playlist": {
+      "info": {
+        "name": "Some playlist",
+        "href": "https://github.com/Levyks/SongQuiz",
+        "set": true,
+        "tracksLoaded": true,
+        "numberOfValidSongs": 42,
+        "tooSmall": false
+      }
+    },
+    "game": {
+      "nextRoundSongUrl": "https://p.scdn.co/mp3-preview/0b6da17f858f104337fac626c4bac972d3947564?cid=774b29d4f13844c495f206cafdad9c86",
+      "timeRemainingForNextRound": 1800
+    },
+    "numberOfRounds": 2,
+    "timePerRound": 3600,
+    "targeted": false,
+    "triggeredByPlaylistChange": false
+  },
+
+  "midRound": {
+    "currentlyIn": "game",
+    "playlist": {
+      "info": {
+        "name": "Some playlist",
+        "href": "https://github.com/Levyks/SongQuiz",
+        "set": true,
+        "tracksLoaded": true,
+        "numberOfValidSongs": 42,
+        "tooSmall": false
+      }
+    },
+    "game": {
+      "currentRound": {
+        "currentPhase": "playing",
+        "type": "song",
+        "choices": [
+          {
+            "name": "Song 1"
+          },
+          {
+            "name": "Song 2"
+          },	
+          {
+            "name": "Song 3"
+          },	
+          {
+            "name": "Song 4"
+          }		
+        ],
+        "trackToPlay": "https://p.scdn.co/mp3-preview/0b6da17f858f104337fac626c4bac972d3947564?cid=774b29d4f13844c495f206cafdad9c86",
+        "number": 0,
+        "remainingTime": 3600,
+        "choosenOption": false
+      }
+    },
+    "numberOfRounds": 2,
+    "timePerRound": 3600,
+    "targeted": false,
+    "triggeredByPlaylistChange": false
+  },
+
+  "roundResults": {
+    "currentlyIn": "game",
+    "playlist": {
+      "info": {
+        "name": "Some playlist",
+        "href": "https://github.com/Levyks/SongQuiz",
+        "set": true,
+        "tracksLoaded": true,
+        "numberOfValidSongs": 42,
+        "tooSmall": false
+      }
+    },
+    "game": {
+      "currentRound": {
+        "currentPhase": "results",
+        "number": 0,
+        "playersThatGotItRight": [
+          {"username": "Player 1", "score": 275},
+          {"username": "Player 2", "score": 242},
+          {"username": "Player 3", "score": 189}
+        ],
+        "correctChoice": 1,
+        "lastOne": false
+      },
+      "nextRoundSongUrl": "https://p.scdn.co/mp3-preview/80ca0295c294687e4ce72081a94e36ff32bd43d1?cid=cc1daca2749344689104ef68a4aaf98c",
+      "timeRemainingForNextRound": 1800
+    },
+    "numberOfRounds": 2,
+    "timePerRound": 3600,
+    "targeted": false,
+    "triggeredByPlaylistChange": false
+  },
+
+  "finalResults": {
+    "currentlyIn": "finalResults",
+    "playlist": {
+      "info": {
+        "name": "Some playlist",
+        "href": "https://github.com/Levyks/SongQuiz",
+        "set": true,
+        "tracksLoaded": true,
+        "numberOfValidSongs": 42,
+        "tooSmall": false
+      }
+    },
+    "game": {
+      "results": [
+        {
+          "username": "Player 1",
+          "score": 1214,
+          "isLeader": false,
+          "isConnected": true
+        },
+        {
+          "username": "Player 2",
+          "score": 1155,
+          "isLeader": false,
+          "isConnected": true
+        },
+        {
+          "username": "Player 3",
+          "score": 1008,
+          "isLeader": false,
+          "isConnected": true
+        },
+        {
+          "username": "Player 4",
+          "score": 987,
+          "isLeader": false,
+          "isConnected": true
+        },
+        {
+          "username": "Player 5",
+          "score": 912,
+          "isLeader": false,
+          "isConnected": true
+        },
+        {
+          "username": "Player 6",
+          "score": 883,
+          "isLeader": false,
+          "isConnected": true
+        }
+      ]
+    },
+    "numberOfRounds": 2,
+    "timePerRound": 3600,
+    "targeted": false,
+    "triggeredByPlaylistChange": false
+  }
+}
