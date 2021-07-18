@@ -8,6 +8,7 @@ class Player {
     this.room = room;
     this.username = username;
     this.score = 0;
+    this.isLeader = false;
     this.leaveRoomTimeout = false;
     this.token = Player.generateToken();
   }
@@ -22,6 +23,8 @@ class Player {
     }
 
     delete this.room.players[this.username];
+
+    if(this.isLeader) this.room.handleLeaderLeft();
 
     this.room.syncPlayersData();
 
@@ -75,7 +78,7 @@ class Player {
     let playerSerializedData = {
       username: this.username,
       score: this.score,
-      isLeader: !!this.isLeader,
+      isLeader: this.isLeader,
       isConnected: !!this.socket
     }
     if(includeToken) playerSerializedData.token = this.token;

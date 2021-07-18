@@ -52,6 +52,8 @@
 		const storedLastRoomJoined = localStorage.getItem('lastRoomJoined');
   	const storedPlayerData = JSON.parse(localStorage.getItem('playerData'));
 
+		data.roomCode = data.roomCode.toString().padStart(4,"0");
+
 		if(
 			storedLastRoomJoined != data.roomCode || 
 			storedPlayerData.username != data.playerData.username ||

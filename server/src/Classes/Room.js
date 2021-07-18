@@ -133,7 +133,7 @@ class Room {
   }
   
 
-  setLeaderListeners(socket){
+  setLeaderListeners(socket = this.leader.socket){
     socket.on("setPlaylist", (playlistUrl) => {this.setPlaylist(playlistUrl)});
     socket.on("setNumberOfRounds", (numberOfRounds) => {this.setNumberOfRounds(numberOfRounds)});
     socket.on("setTimePerRound", (timePerRound) => {this.setTimePerRound(timePerRound)});
@@ -228,6 +228,21 @@ class Room {
       playerList.sort((a,b) => a.score < b.score ? 1 : -1);
     } 
     return playerList;
+  }
+
+  handleLeaderLeft() {
+    if(!this.currentlyConnectedPlayers) return;
+    const playersKeys = Object.keys(this.players);
+    
+    this.leader = this.players[playersKeys[Math.floor(Math.random() * playersKeys.length)]];
+
+    this.leader.isLeader = true
+
+    this.setLeaderListeners();
+
+    Room.sendResponse("connectToRoomResponse", this.leader.socket, {roomCode: this.code, playerData: this.leader.serialize(true)});
+
+    this.log(`The previous leader left, ${this.leader.username} was randomly picked as the new leader`);
   }
 
   syncRoomState(triggeredByPlaylistChange = false, targetPlayer = false) {
