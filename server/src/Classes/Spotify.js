@@ -1,10 +1,10 @@
 require('dotenv').config()
 const axios = require('axios');
 
-
+/*
 const fs = require('fs');
 const { performance } = require('perf_hooks');
-
+*/
 
 class Spotify {
   static accessToken;
@@ -156,7 +156,7 @@ class Spotify {
       }
     }).then(response => {
       Spotify.accessToken = response.data.access_token;
-      fs.writeFileSync('./token.json', JSON.stringify({access_token: Spotify.accessToken}));
+      //fs.writeFileSync('./token.json', JSON.stringify({access_token: Spotify.accessToken}));
       return Spotify.accessToken;
 
     }).catch(error => {
@@ -185,7 +185,7 @@ class Spotify {
 module.exports = Spotify;
 
 
-Spotify.accessToken = JSON.parse(fs.readFileSync('./token.json')).access_token;
+//Spotify.accessToken = JSON.parse(fs.readFileSync('./token.json')).access_token;
 
 /*
 const started = performance.now()
