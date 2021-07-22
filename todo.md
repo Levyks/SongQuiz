@@ -4,8 +4,7 @@
 
 ### Todo
 
-- [ ] Optimize socket communication
-
 ### Done ✓
 
+- [x] Optimize socket communication
 - [x] Pass leader to another person when the current one leaves
