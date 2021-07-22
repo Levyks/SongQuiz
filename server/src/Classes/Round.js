@@ -1,13 +1,16 @@
 const TIME_TO_CLOSE_OFFSET = 1;
 
 class Round {
-  constructor(number, game) {
+  constructor(number, game, startsIn = 0) {
     this.number = number;
 
     this.game = game;
     this.room = this.game.room;
     this.players = this.room.players;
     this.playersAnswers = {};
+
+    this.startsIn = startsIn;
+    this.currentPhase = 'scheduled';
   
     this.generateRoundType();
     this.generateChoices(this.room.choicesPerRound);
@@ -30,26 +33,34 @@ class Round {
     }
 
     //Generates the correct choice 
-    this.correctChoice = Math.floor(Math.random()*numberOfChoices);
-    this.correctChoiceIndex = choicesIndexes[this.correctChoice];
+    this.correctChoice = Math.floor(Math.random()*numberOfChoices); //Relative index, i.e: from 0 to 3
+    this.correctChoiceIndex = choicesIndexes[this.correctChoice]; //Absolute index, referent to the original tracks array
 
     //Generates an array with the songs with the indexes previously generated
     this.choices = [];
     choicesIndexes.forEach(choiceIndex => {
-      this.choices.push(this.game.playlist.tracks[choiceIndex]);
+      const track = this.game.playlist.tracks[choiceIndex];
+
+      if(this.roundType === 'song') {
+        this.choices.push(track.name);
+      } else {
+        this.choices.push(track.artists);
+      }
     });
 
-    this.songToPlayUrl = this.choices[this.correctChoice].preview_url;
+    this.songToPlayUrl = this.game.playlist.tracks[this.correctChoiceIndex].preview_url;
   }
 
   startRound() {
     this.room.log(`Round ${this.number} starting, the correct choice is ${this.correctChoice}`);
-    this.game.started = true;
 
     this.currentPhase = 'playing';
     this.startedAt = Date.now();
-    
-    this.room.syncRoomState();
+
+    this.room.sendSyncEvent({
+      type: 'startingRound',
+      data: this.game.getGameState()
+    });
 
     setTimeout(() => {this.endRound()}, (this.game.timePerRound + TIME_TO_CLOSE_OFFSET) * 1000);
   }
@@ -72,6 +83,8 @@ class Round {
     //Sorts the array
     this.playersThatGotItRight.sort((a, b) => a.score < b.score ? 1 : -1);
 
+    const trackThatJustPlayed = this.game.playlist.tracks[this.correctChoiceIndex];
+
     //Remove song that was just played from the list of available songs in the game (so it does not repeat)
     this.game.playlist.tracks.splice(this.correctChoiceIndex, 1);
     
@@ -80,11 +93,17 @@ class Round {
 
     //Changes round current phase and sync
     this.currentPhase = 'results';
-    this.room.syncRoomState();
+    
+    this.room.sendSyncEvent({
+      type: 'endingRound',
+      data: this.game.getGameState()
+    });
+
     this.room.syncPlayersData();
 
     //Sends data of the song that was just played to the clients to be added to the history
-    this.room.ioChannel.emit('addSongToHistory', this.choices[this.correctChoice]);
+    this.room.ioChannel.emit('addSongToHistory', trackThatJustPlayed);
+
   }
 
   getTimeRemaining(round = true) {
@@ -98,25 +117,35 @@ class Round {
     let roundState = {
       currentPhase: this.currentPhase
     };
-    if(this.currentPhase === 'playing'){
-      roundState = {
-        ...roundState,
-        type: this.roundType,
-        choices: this.choices,
-        trackToPlay: this.songToPlayUrl,
-        number: this.number,
-        remainingTime: this.getTimeRemaining(),
-        choosenOption: this.playersAnswers[targetPlayer.username] ? this.playersAnswers[targetPlayer.username].choosenOption : false
-      }
-    } else if (this.currentPhase === 'results') {
-      roundState = {
+    switch (this.currentPhase) {
+      case 'playing':
+        roundState = {
+          ...roundState,
+          type: this.roundType,
+          choices: this.choices,
+          trackToPlay: this.songToPlayUrl,
+          number: this.number,
+          remainingTime: this.getTimeRemaining()
+        }
+        if(targetPlayer) roundState.choosenOption = this.playersAnswers[targetPlayer.username] ? this.playersAnswers[targetPlayer.username].choosenOption : false;
+        
+        break;
+
+      case'results':
+        roundState = {
+          ...roundState, 
         ...roundState, 
-        number: this.number,
-        playersThatGotItRight: this.playersThatGotItRight,
-        correctChoice: this.correctChoice,
-        lastOne: this.number == (this.game.numberOfRounds - 1)
+          ...roundState, 
+          number: this.number,
+          playersThatGotItRight: this.playersThatGotItRight,
+          correctChoice: this.correctChoice,
+          lastOne: this.number == (this.game.numberOfRounds - 1)
+        }
+        break;
+
+      default:
+        break;
       }
-    }
     return roundState;
   }
 

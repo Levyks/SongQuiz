@@ -1,10 +1,10 @@
 <script>
-import Router, { push } from 'svelte-spa-router';
+import Router from 'svelte-spa-router';
 import { wrap } from 'svelte-spa-router/wrap';
 import { io } from 'socket.io-client';
 
 import { setupI18n, isLocaleLoaded } from './services/i18n';
-import { isMobile } from './stores.js';
+import { isMobile, playerData, lastRoomJoined } from './stores.js';
 
 import CreateOrJoinGame from './components/CreateOrJoinGame.svelte';
 import NotFound from './components/NotFound.svelte';
@@ -15,16 +15,16 @@ setupI18n();
 
 const socket = io(`${__songQuiz.env.SERVER_URL}`);
 
-function handleRouteEvent(event){
-	switch(event.detail.action){
-		case "redirectToRoom":
-			const roomCode = event.detail.roomCode;
-			push(`/play/room/${roomCode}`);
-			break;
-		default:
-			break;
-	}
-}
+//socket.prependAny(console.log);
+
+socket.on('updatePlayerData', newPlayerData => {
+	console.log(newPlayerData);
+	$playerData = newPlayerData;
+});
+
+$: localStorage.setItem('playerData', JSON.stringify($playerData) ); 
+
+$: localStorage.setItem('lastRoomJoined', $lastRoomJoined);
 
 const createOrJoinGameRoute = wrap({
 	component: CreateOrJoinGame,
@@ -57,7 +57,7 @@ handleWindowResize();
 </script>
 
 {#if $isLocaleLoaded}
-	<Router {routes} on:routeEvent={handleRouteEvent} />
+	<Router {routes}/>
 {:else}
 	<div class="loading-wrapper">
 		<div class="app-card center-xy">

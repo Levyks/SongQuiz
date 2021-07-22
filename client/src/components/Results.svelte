@@ -1,13 +1,13 @@
 <script>
   import { _ } from '../services/i18n.js';
   export let results;
-  export let playerData
+  export let playerData;
 </script>
 
 <ul class="list-group">
   {#if results.length}
     {#each results as player, i}
-      <li class="list-group-item" class:highlighted-item={playerData.username === player.username}>
+      <li class="list-group-item" class:highlighted-item={$playerData.username === player.username}>
         <span>{i+1}º</span>
         <strong>
           {player.username}
@@ -19,7 +19,7 @@
       </li>
     {/each}    
   {:else}
-    <li class="list-group-item">{$_("game.round.results.noOneCorrect")}</li>
+    <li class="list-group-item justify-content-center">{$_("game.round.results.noOneCorrect")}</li>
   {/if}
 </ul>
 

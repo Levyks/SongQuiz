@@ -13,15 +13,13 @@ class Player {
     this.token = Player.generateToken();
   }
 
-  leaveRoom(toDisconnect = true) {
-    if(toDisconnect){
-      this.socket.removeAllListeners();
-      this.socket.disconnect();
-      delete this.socket;
-  
-      this.room.currentlyConnectedPlayers -= 1;
-    }
+  leaveRoom(disconnected = false) {
 
+    if(!disconnected) this.room.currentlyConnectedPlayers -= 1;
+
+    this.socket.leave(this.room.code);
+    this.socket.removeAllListeners();
+    
     delete this.room.players[this.username];
 
     if(this.isLeader) this.room.handleLeaderLeft();
@@ -69,20 +67,27 @@ class Player {
       }
       
       this.room.log(`Player ${this.username} will be kicked in ${TIME_TO_LEAVE_ROOM_AFTER_DISCONNECT} seconds if he doesn't rejoin`);
-      this.leaveRoomTimeout = setTimeout(() => {this.leaveRoom(false)}, TIME_TO_LEAVE_ROOM_AFTER_DISCONNECT * 1000);
+      this.leaveRoomTimeout = setTimeout(() => {this.leaveRoom(true)}, TIME_TO_LEAVE_ROOM_AFTER_DISCONNECT * 1000);
 
     });
   }
 
-  serialize(includeToken = false) {
+  serialize() {
     let playerSerializedData = {
       username: this.username,
       score: this.score,
       isLeader: this.isLeader,
       isConnected: !!this.socket
     }
-    if(includeToken) playerSerializedData.token = this.token;
     return playerSerializedData;
+  }
+
+  sendPlayerData(socket = this.socket) {
+    socket.emit('updatePlayerData', {
+      username: this.username,
+      token: this.token,
+      isLeader: this.isLeader
+    });
   }
 
   static generateToken() {

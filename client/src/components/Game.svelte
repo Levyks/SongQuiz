@@ -32,15 +32,16 @@
 
   function trackRoomStateChange(state) {
 
-    if(!state.game.currentRound) {
+    if(state.game.nextRound) {
       setNextRoundTimer();
-      setAudioElementSrc(state.game.nextRoundSongUrl);
-      return;
+      setAudioElementSrc(state.game.nextRound.trackToPlay);
     }
+
+    if(!state.game.currentRound) return;
 
     switch(state.game.currentRound.currentPhase) {
       case 'playing':
-        choosenChoice = state.game.currentRound.choosenOption;
+        choosenChoice = state.game.currentRound.choosenOption || false;
         correctChoice = false;
         wrongChoice = false;
 
@@ -48,7 +49,7 @@
 
         startPlaying();
 
-        choicesButtonsData = formatChoices(state.game.currentRound);
+        choicesButtonsData = state.game.currentRound.choices;
 
         timeRemaining = state.game.currentRound.remainingTime;
         const timer = setInterval(() => {
@@ -80,7 +81,7 @@
             }
             showRoundResults = true;
             setAudioElementSrc(state.game.nextRoundSongUrl);
-          }, 1000);
+          }, 1500);
         } 
         
         localStorage.setItem('defaultVolume', volume);
@@ -94,7 +95,7 @@
 
   function setNextRoundTimer() {
     if(!nextRoundTimer){
-      nextRoundStartsIn = roomState.game.timeRemainingForNextRound;
+      nextRoundStartsIn = roomState.game.nextRound.startsIn;
       nextRoundTimer = setInterval(() => {
         nextRoundStartsIn-=1;
         if(nextRoundStartsIn <= 0){
@@ -105,9 +106,11 @@
     }  
   }
 
+  let songScheduledToPlay = false;
+
   function setAudioElementSrc(url) {
     if(!audioElement) {
-      onMount(() => {setAudioElementSrc(url)});
+      songScheduledToPlay = url;
       return;
     }
 
@@ -117,6 +120,12 @@
       audioElement.src = url;
     }
   }
+
+  onMount(() => {
+    if(songScheduledToPlay) {
+      setAudioElementSrc(songScheduledToPlay);
+    }
+  });
 
   function startPlaying() {
     if(!audioElement) {
@@ -138,24 +147,6 @@
         showButtonToInteract = true;
       }
     });
-  }
-
-  function formatChoices(data) {
-    const output = [];
-    data.choices.forEach(choice => {
-      switch(data.type) {
-        case "artist":
-          const artistsString = choice.artists.map(e => e.name).join(', ');
-          output.push(artistsString);
-          break;
-        case "song":
-          output.push(choice.name);
-          break;
-        default:
-          break;
-      }
-    });
-    return output;
   }
 
   function handleVolumeInput(e){

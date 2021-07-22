@@ -1,13 +1,15 @@
 <script>
 	import { push } from 'svelte-spa-router';
 	import { _ } from '../services/i18n.js';
+	import { playerData, lastRoomJoined } from '../stores.js';
 
 	export let params = undefined;
 	export let socket;
 
 	socket.removeAllListeners();
-	socket.disconnect();
-	socket.connect();
+	socket.on('updatePlayerData', newPlayerData => {
+		$playerData = newPlayerData;
+	});
 
 	let roomCodeRequired = true;
 
@@ -22,6 +24,10 @@
 	function handleFormSubmit(e) {
 		roomCodeRequired = true;
 
+		if(!$playerData) $playerData = {};
+		
+		$playerData.username = username;
+
     const action = e.submitter.getAttribute('action');
 
     switch(action){
@@ -29,7 +35,7 @@
         createRoom();
         break;
       case "joinRoom":
-				joinRoom({roomCode, playerData: {username}});
+				joinRoom(roomCode);
         break;
       default:
         break;
@@ -42,28 +48,18 @@
 
 	socket.on('createRoomResponse', response => {
 		if(response.status === 200){
-			joinRoom(response)
+			joinRoom(response.roomCode);
 		} else {
 			window.alert($_('misc.somethingWentWrong'));
 		}
   });
 
-	function joinRoom(data) {
-		const storedLastRoomJoined = localStorage.getItem('lastRoomJoined');
-  	const storedPlayerData = JSON.parse(localStorage.getItem('playerData'));
+	function joinRoom(code) {
+		code = code.toString().padStart(4,"0");
 
-		data.roomCode = data.roomCode.toString().padStart(4,"0");
+		$lastRoomJoined = code;
 
-		if(
-			storedLastRoomJoined != data.roomCode || 
-			storedPlayerData.username != data.playerData.username ||
-			(data.playerData.token && storedPlayerData.token != data.playerData.token))
-			{
-			localStorage.setItem('lastRoomJoined', data.roomCode);
-			localStorage.setItem('playerData', JSON.stringify(data.playerData) );
-		}
-
-		push(`/play/room/${data.roomCode}`);
+		push(`/play/room/${code}`);
 	}
 
 </script>

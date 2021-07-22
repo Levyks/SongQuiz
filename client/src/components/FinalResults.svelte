@@ -20,10 +20,10 @@
     <hr>
   </div>
   
-  <Results results={roomState.game.results} {playerData}/>
+  <Results results={roomState.game.currentRound.playersThatGotItRight} {playerData}/>
 
   <div>
-    {#if playerData.isLeader}
+    {#if $playerData.isLeader}
       <button class="btn btn-primary" on:click={backToLobby}>{$_('finalResults.button.isLeader')}</button>
     {:else}
       <h6 class="text-secondary">{$_('finalResults.button.notLeader')}</h6>

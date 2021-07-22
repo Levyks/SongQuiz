@@ -32,12 +32,13 @@ class Room {
 
       this.leader = new Player(username, this);
       this.leader.isLeader = true;
+      this.leader.sendPlayerData(socket);
 
       this.log(`Room created by ${this.leader.username}`);
 
       Room.scheduleDeleteRoomIfEmpty(this.code);
 
-      Room.sendResponse("createRoomResponse", socket, {roomCode: this.code, playerData: this.leader.serialize(true)});
+      Room.sendResponse("createRoomResponse", socket, {roomCode: this.code});
     } catch(err) {
       this.log(`Error while creating room: ${err}`);
       Room.sendResponse("createRoomResponse", socket, {}, 500);
@@ -50,6 +51,12 @@ class Room {
       status: status,
       ...data, 
     });
+  }
+
+  getPlaylistWithoutTracks() {
+    const playlist = Object.assign({}, this.playlist);
+    if(playlist.tracks) delete playlist.tracks;
+    return playlist;
   }
 
   setPlaylist(playlistUrl = this.playlistUrl) {
@@ -66,7 +73,10 @@ class Room {
           this.playlist.info.set = true;
           this.playlist.info.tracksLoaded = false;
 
-          this.syncRoomState();
+          this.sendSyncEvent({
+            type: 'playlistUpdate',
+            data: this.getPlaylistWithoutTracks()
+          });
 
           this.log(`Playlist info fetched, playlist: ${this.playlist.info.name}`);
 
@@ -76,7 +86,10 @@ class Room {
             this.playlist.info.tracksLoaded = true;
             this.playlist.info.tooSmall = this.playlist.info.numberOfValidSongs < this.choicesPerRound + this.numberOfRounds - 1;
 
-            this.syncRoomState(true);
+            this.sendSyncEvent({
+              type: 'playlistUpdate',
+              data: this.getPlaylistWithoutTracks()
+            });
 
             this.log(`Playlist tracks fetched, number of valid songs: ${this.playlist.info.numberOfValidSongs}`);
             if(this.playlist.info.tooSmall) this.log("Playlist is too small");
@@ -98,24 +111,33 @@ class Room {
               message: "Unknown Error"
             }
           }
-          this.syncRoomState(true);   
+          this.sendSyncEvent({
+            type: 'playlistUpdate',
+            data: this.getPlaylistWithoutTracks()
+          });
 
           this.log(`Error while fetching playlist, ${this.playlist.info.error.status} | ${this.playlist.info.error.message}`);
 
         });
       } else {
-        this.syncRoomState(true);
+        this.sendSyncEvent({
+          type: 'playlistUpdate',
+          data: this.getPlaylistWithoutTracks()
+        });
       }
 
     //This code will run when this method is called without an URL (when the number of rounds update)
-    } else if (this.playlist && this.playlist.info.numberOfValidSongs) {
-      this.playlist.info.tooSmall = this.playlist.info.numberOfValidSongs < this.choicesPerRound + this.numberOfRounds - 1; 
-      this.syncRoomState(true);  
-
-      this.log(`Number of rounds updated, the playlist is ${this.playlist.info.tooSmall ? 'too small' : 'big enough'}`);
-      
     } else {
-      this.syncRoomState(true);  
+      if (this.playlist && this.playlist.info.numberOfValidSongs) {
+      this.playlist.info.tooSmall = this.playlist.info.numberOfValidSongs < this.choicesPerRound + this.numberOfRounds - 1; 
+      
+      this.log(`Number of rounds updated, the playlist is ${this.playlist.info.tooSmall ? 'too small' : 'big enough'}`);
+      }
+
+      this.sendSyncEvent({
+        type: 'playlistUpdate',
+        data: this.getPlaylistWithoutTracks()
+      });
     }
 
   }
@@ -123,13 +145,19 @@ class Room {
   setNumberOfRounds(numberOfRounds) {
     if(isNaN(numberOfRounds)) return;
     this.numberOfRounds = Math.max(1, Math.ceil(numberOfRounds));
-    this.setPlaylist();
+    this.sendSyncEvent({
+      type: 'numberOfRoundsUpdate',
+      data: this.numberOfRounds
+    });
   }
 
   setTimePerRound(timePerRound) {
     if(isNaN(timePerRound)) return;
     this.timePerRound = Math.max(5, Math.ceil(timePerRound));
-    this.syncRoomState();
+    this.sendSyncEvent({
+      type: 'timePerRoundUpdate',
+      data: this.timePerRound
+    });
   }
   
 
@@ -149,7 +177,9 @@ class Room {
     Object.keys(this.players).forEach(key => {
       this.players[key].score = 0;
     });
-    this.syncRoomState();
+    this.sendSyncEvent({
+      type: 'backToLobby'
+    });
     this.syncPlayersData();
   }
 
@@ -198,15 +228,17 @@ class Room {
 
       player.setSocket(socket);
 
-      this.players[player.username] = player;
-
       player.socket.join(this.code);
 
-      this.syncRoomState(false, player);
+      player.sendPlayerData();
+
+      this.players[player.username] = player;
+
+      this.sendSyncEvent({type: "all", data: this.getRoomState()}, player);
 
       this.syncPlayersData();
 
-      Room.sendResponse("connectToRoomResponse", socket, {roomCode: this.code, playerData: player.serialize(true)});
+      Room.sendResponse("connectToRoomResponse", socket, {roomCode: this.code});
     } catch(err) {
       this.log(`Error while connecting player "${data.playerData.username}": ${err}`);
       Room.sendResponse("connectToRoomResponse", socket, {}, 500);
@@ -231,7 +263,7 @@ class Room {
   }
 
   handleLeaderLeft() {
-    if(!this.currentlyConnectedPlayers) return;
+    if(this.currentlyConnectedPlayers <= 0) return;
     const playersKeys = Object.keys(this.players);
     
     this.leader = this.players[playersKeys[Math.floor(Math.random() * playersKeys.length)]];
@@ -245,27 +277,27 @@ class Room {
     this.log(`The previous leader left, ${this.leader.username} was randomly picked as the new leader`);
   }
 
-  syncRoomState(triggeredByPlaylistChange = false, targetPlayer = false) {
-    //If there's a targeted player, only send to him, if not, send to the entire channel
-    const socket = targetPlayer ? targetPlayer.socket : this.ioChannel;
-    
-    socket.emit('syncRoomState', this.getRoomState(triggeredByPlaylistChange, targetPlayer));
-  }
-
-  getRoomState(triggeredByPlaylistChange = false, targetPlayer = false) {
+  getRoomState(targetPlayer = false) {
     let roomState = {
       currentlyIn: this.currentlyIn,
       playlist: this.playlist && {
         info: this.playlist.info
       },
-      game: this.game.getGameState(targetPlayer),
       numberOfRounds: this.numberOfRounds,
       timePerRound: this.timePerRound,
-      targeted: !!targetPlayer,
-      triggeredByPlaylistChange
+      targeted: !!targetPlayer
     };
 
+    if(this.currentlyIn === 'game' || this.currentlyIn === 'finalResults') roomState.game = this.game.getGameState(targetPlayer);
+
     return roomState;
+  }
+
+  sendSyncEvent(data, targetPlayer = false) {
+    //If there's a targeted player, only send to him, if not, send to the entire channel
+    const socket = targetPlayer ? targetPlayer.socket : this.ioChannel;
+
+    socket.emit('syncEvent', data);
   }
 
   log(message) {

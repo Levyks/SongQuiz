@@ -33,7 +33,9 @@
 
     validPlaylistSet = state.playlist && state.playlist.info.set && state.playlist.info.tracksLoaded && !state.playlist.info.tooSmall;
 
-    if(state.triggeredByPlaylistChange) isLoadingPlaylist = false;
+    if(isLoadingPlaylist && (!state.playlist || !state.playlist.info.set || state.playlist.info.tracksLoaded)) {
+      isLoadingPlaylist = false;
+    }
   }
 
   function handlePlaylistUrlBlur(){
@@ -84,7 +86,7 @@
   <div class="lobby-main">
     <div class="form-group">
       <label for="username-input">{$_("lobby.inputLabels.username")}</label>
-      <input class="form-control" value={playerData.username} id="username-input" readonly>
+      <input class="form-control" value={$playerData.username} id="username-input" readonly>
     </div>
 
     <div class="form-group">
@@ -129,7 +131,7 @@
         {/if}
       </div>
 
-      {#if playerData.isLeader}
+      {#if $playerData.isLeader}
       <input class="form-control" on:blur={handlePlaylistUrlBlur} bind:value={playlistUrl} placeholder={$_("lobby.playlistUrlPlaceholder")} id="playlist-url-input">
       {/if}
 
@@ -146,12 +148,12 @@
     <div class="row">
       <div class="col">
         <div class="form-group">
-          <input type="number" min="1" max="30" on:blur={handleNumberOfRoundsBlur} bind:value={numberOfRounds} readonly={!playerData.isLeader} class="form-control" id="number-of-rounds-input">
+          <input type="number" min="1" max="30" on:blur={handleNumberOfRoundsBlur} bind:value={numberOfRounds} readonly={!$playerData.isLeader} class="form-control" id="number-of-rounds-input">
         </div>
       </div>
       <div class="col">
         <div class="form-group">
-          <input type="number" min="5" on:blur={handleTimePerRoundBlur} bind:value={timePerRound} readonly={!playerData.isLeader} class="form-control" id="time-per-round-input">
+          <input type="number" min="5" on:blur={handleTimePerRoundBlur} bind:value={timePerRound} readonly={!$playerData.isLeader} class="form-control" id="time-per-round-input">
         </div>
       </div>
     </div>
@@ -173,7 +175,7 @@
   </div>
 
   <div class=text-center>
-  {#if playerData.isLeader}
+  {#if $playerData.isLeader}
     <button 
       class="btn btn-primary" 
       on:click={startGame} 

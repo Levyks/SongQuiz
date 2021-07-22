@@ -1,10 +1,10 @@
 require('dotenv').config()
 const axios = require('axios');
 
-/*
+
 const fs = require('fs');
 const { performance } = require('perf_hooks');
-*/
+
 
 class Spotify {
   static accessToken;
@@ -36,7 +36,7 @@ class Spotify {
           response.data.items.forEach(item => {
             //Only add tracks that have a preview url
             if(item.track.preview_url){
-              tracks.push(item.track);
+              tracks.push(Spotify.formatTrack(item.track));
             }
           });
 
@@ -51,6 +51,27 @@ class Spotify {
     
     return tracks;
 
+  }
+
+  static formatTrack(track) {
+    let trackFormatted = {
+      albumImageUrl: track.album.images[track.album.images.length - 1].url,
+      artists: "",
+      href: track.external_urls.spotify,
+      name: track.name,
+      preview_url: track.preview_url
+    };
+    
+    track.artists.forEach(artist => {
+      trackFormatted.artists += artist.name + ', ';
+    });
+    trackFormatted.artists = trackFormatted.artists.slice(0,-2)
+
+    if(trackFormatted.artists.length > 50){
+      trackFormatted.artists = trackFormatted.artists.slice(0, 50) + '...';
+    }
+
+    return trackFormatted
   }
 
   static async getPlaylistInfo(url, secondTry = false){
@@ -135,7 +156,7 @@ class Spotify {
       }
     }).then(response => {
       Spotify.accessToken = response.data.access_token;
-      //fs.writeFileSync('./token.json', JSON.stringify({access_token: Spotify.accessToken}));
+      fs.writeFileSync('./token.json', JSON.stringify({access_token: Spotify.accessToken}));
       return Spotify.accessToken;
 
     }).catch(error => {
@@ -164,14 +185,13 @@ class Spotify {
 module.exports = Spotify;
 
 
-//Spotify.accessToken = JSON.parse(fs.readFileSync('./token.json')).access_token;
+Spotify.accessToken = JSON.parse(fs.readFileSync('./token.json')).access_token;
 
 /*
 const started = performance.now()
 Spotify.getPlaylistTracks("https://open.spotify.com/playlist/1iDizn8CbHQtCyNSo0NZQj?si=eae87c214bd34a35").then(tracks => {
-  console.log(tracks.length);
+  console.log(tracks);
   const ended = performance.now()
   console.log(`Took ${ended-started} ms`);
 });
 */
-

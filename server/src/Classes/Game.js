@@ -1,6 +1,6 @@
 const Round = require('./Round');
 
-const TIME_BETWEEN_ROUNDS = 4;
+const TIME_BETWEEN_ROUNDS = 5;
 
 class Game {
   constructor(room) {
@@ -22,26 +22,34 @@ class Game {
     this.numberOfRounds = this.room.numberOfRounds;
     this.timePerRound = this.room.timePerRound;
 
+    this.room.log("Starting Game");
+
     this.scheduleNextRound(true);
 
-    this.room.log("Starting Game");
+    this.started = true;
     this.room.currentlyIn = 'game';
-    this.room.syncRoomState();
 
+    this.room.sendSyncEvent({
+      type: 'startingGame',
+      data: this.getGameState()
+    });
   }
 
   endGame() {
     this.room.log("Game has ended");
     this.room.currentlyIn = "finalResults";
-    this.room.syncRoomState();
+    this.room.sendSyncEvent({
+      type: 'endingGame',
+      data: this.room.getPlayerList()
+    });
   }
 
   scheduleNextRound(isFirstRound = false) {
     const nextRoundNumber = isFirstRound ? 0 : this.currentRound.number + 1;
 
     const wasThisTheLastRound = nextRoundNumber >= this.numberOfRounds;
- 
-    if(!wasThisTheLastRound) this.nextRound = new Round(nextRoundNumber, this);
+
+    this.nextRound = wasThisTheLastRound ? {trackToPlay: false} : new Round(nextRoundNumber, this);
 
     this.nextRoundTimerStartedAt = Date.now();
     setTimeout(() => {
@@ -73,20 +81,18 @@ class Game {
 
   getGameState(targetPlayer = false){
     let gameState = {};
-    if(this.room.currentlyIn == "game"){
-      if(this.started) {
-        gameState.currentRound = this.currentRound.getRoundState(targetPlayer);
-      }
-      if(this.nextRound) {
-        gameState.nextRoundSongUrl = this.nextRound.songToPlayUrl;
-      } 
-      if(this.nextRoundTimerStartedAt) {
-        gameState.timeRemainingForNextRound = this.getTimeRemainingForNextRound();
-      }
-    } 
-    else if(this.room.currentlyIn == "finalResults") gameState.results = this.room.getPlayerList();
+    if(this.currentRound) gameState.currentRound = this.currentRound.getRoundState(targetPlayer);
+  
+    if(this.nextRound) gameState.nextRound = this.getNextRoundState();
 
     return gameState;
+  }
+
+  getNextRoundState() {
+    return {
+      trackToPlay: this.nextRound.songToPlayUrl,
+      startsIn: this.getTimeRemainingForNextRound()
+    };
   }
 
 }

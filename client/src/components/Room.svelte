@@ -3,7 +3,7 @@
   import { _ } from '../services/i18n.js';
   import Modal from "sv-bootstrap-modal";
 
-  import { openModal, isMobile } from '../stores.js';
+  import { openModal, isMobile, playerData, lastRoomJoined } from '../stores.js';
 
   import Lobby from './Lobby.svelte';
   import Game from './Game.svelte';
@@ -23,12 +23,9 @@
   let lostConnection = false;
 
   let playersData = [];
-  
-  const lastRoomJoined = localStorage.getItem('lastRoomJoined');
-  let playerData = JSON.parse(localStorage.getItem('playerData'));;
 
-  if(params.roomCode == lastRoomJoined && playerData){
-    connectToRoom(params.roomCode, playerData);
+  if(params.roomCode == $lastRoomJoined && $playerData){
+    connectToRoom(params.roomCode);
     
     socket.on("disconnect", () => {
       console.log("Socket disconnected");
@@ -37,23 +34,20 @@
       socket.on("connect", () => {
         console.log("Socket connected");
         socket.removeAllListeners("connect");
-        connectToRoom(params.roomCode, playerData);
+        connectToRoom(params.roomCode, $playerData);
       });
     });
   } else {
     push(`/play/join/${params.roomCode}`);
   }
 
-  function connectToRoom(code, playerData){
-    socket.emit('initialSetup', {action:'connectToRoom', code, playerData});
+  function connectToRoom(code){
+    socket.emit('initialSetup', {action:'connectToRoom', code, playerData: $playerData});
   }
 
   socket.on('connectToRoomResponse', response => {
     lostConnection = false;
     if(response.status === 200){
-      playerData = response.playerData;
-      localStorage.setItem('playerData', JSON.stringify(response.playerData) );
-
       roomIsLoading = false;
     } else {
       if(response.status === 404) window.alert($_("room.doesNotExist", { values: {code: params.roomCode} }));
@@ -74,12 +68,41 @@
     openModal.set(false);
   }
 
-  socket.on('syncRoomState', data => {
-    roomState = data;
-  });
-
-  socket.on('startingGame', () => {
-    roomState.currentlyIn = "game";
+  socket.on('syncEvent', syncEvent => {
+    roomState.targeted = false;
+    switch(syncEvent.type) {
+      case 'all':
+        roomState = syncEvent.data;
+        break;
+      case 'startingGame':
+        roomState.currentlyIn = "game";
+        roomState.game = syncEvent.data;
+        break;
+      case 'startingRound':
+        roomState.game = syncEvent.data;
+        break;
+      case 'endingRound':
+        roomState.game = syncEvent.data;
+        break;
+      case 'endingGame':
+        roomState.currentlyIn = "finalResults";
+        roomState.game.currentRound.playersThatGotItRight = syncEvent.data;
+        break;
+      case 'playlistUpdate':
+        roomState.playlist = syncEvent.data;
+        break;
+      case 'numberOfRoundsUpdate':  
+        roomState.numberOfRounds = syncEvent.data;
+        break;
+      case 'timePerRoundUpdate':
+        roomState.timePerRound = syncEvent.data;
+        break;
+      case 'backToLobby':
+        roomState.currentlyIn = "lobby";
+        break;
+      default:
+        break;
+    }
   });
 
   socket.on('syncPlayersData', players => {
@@ -91,22 +114,8 @@
   socket.on('addSongToHistory', addSongToHistory);
 
   function addSongToHistory(song) {
-    const name = song.name;
-   
-    let artists = "";
-    song.artists.forEach(artist => {
-      artists+=artist.name + ', ';
-    });
-    artists = artists.slice(0, -2);
-    if(artists.length > 40){
-      artists = artists.slice(0, 40) + '...';
-    }
 
-    const albumImageUrl = song.album.images[song.album.images.length-1].url;   
-
-    const href = song.external_urls.spotify;
-
-    songsHistory.unshift({name, artists, albumImageUrl, href});
+    songsHistory.unshift(song);
     if(songsHistory.length > 10) songsHistory.pop();
     songsHistory = songsHistory;
   }
