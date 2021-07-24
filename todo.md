@@ -4,6 +4,8 @@
 
 ### Todo
 
+- [] Prevent songs from repeating in-between games
+
 ### Done ✓
 
 - [x] Optimize socket communication
