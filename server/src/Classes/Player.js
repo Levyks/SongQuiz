@@ -15,10 +15,12 @@ class Player {
 
   leaveRoom(disconnected = false) {
 
-    if(!disconnected) this.room.currentlyConnectedPlayers -= 1;
-
-    this.socket.leave(this.room.code);
-    this.socket.removeAllListeners();
+    if(!disconnected){
+      this.room.currentlyConnectedPlayers -= 1;
+      this.socket.removeAllListeners();
+      this.socket.leave(this.room.code);
+      delete this.socket;
+    } 
     
     delete this.room.players[this.username];
 
@@ -33,8 +35,8 @@ class Player {
 
   setSocket(socket) {
     if(this.socket) {
-      this.socket.removeAllListeners('disconnect');
-      this.socket.disconnect();
+      this.socket.removeAllListeners();
+      this.socket.leave(this.room.code);
       delete this.socket;
 
       this.room.currentlyConnectedPlayers -= 1;
