@@ -7,6 +7,8 @@
 	export let socket;
 
 	socket.removeAllListeners();
+	socket.disconnect();
+	socket.connect();
 	socket.on('updatePlayerData', newPlayerData => {
 		$playerData = newPlayerData;
 	});

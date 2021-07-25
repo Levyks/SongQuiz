@@ -14,10 +14,10 @@ class Game {
   startGame() {
     if(!this.room.playlist || !this.room.playlist.info.set || this.room.playlist.info.tooSmall) return;
 
-    this.playlist = {
+    if(!this.room.originalPlaylist) this.room.originalPlaylist = {
       info: this.room.playlist.info,
       tracks: this.room.playlist.tracks.slice()
-    }
+    };
 
     this.numberOfRounds = this.room.numberOfRounds;
     this.timePerRound = this.room.timePerRound;

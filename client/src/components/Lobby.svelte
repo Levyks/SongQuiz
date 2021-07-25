@@ -72,6 +72,12 @@
     document.execCommand("copy");
   }
 
+  function handleResetPlaylistClick(){
+    if(window.confirm($_("lobby.resetPlaylist.confirmation"))){
+      socket.emit('resetPlaylist');  
+    }
+  }
+
   function startGame(){
     socket.emit('startGame');
   }
@@ -91,6 +97,14 @@
 
     <div class="form-group">
       <label for="playlist-input">{$_("lobby.inputLabels.playlist")}</label>
+      {#if $playerData.isLeader}
+      <button class="btn btn-link" 
+        disabled={!roomState.playlist || !roomState.playlist.info.set || roomState.playlist.info.numberOfValidSongsRemaining == roomState.playlist.info.totalNumberOfValidSongs}
+        on:click={handleResetPlaylistClick} 
+        title={$_("lobby.resetPlaylist.title")}>
+        <i class="fas fa-sync-alt"></i> 
+      </button>
+      {/if}
       <div class="input-group mb-1">
 
         <span class="form-control playlist-label" readonly>
@@ -101,8 +115,8 @@
 
             <a href={roomState.playlist.info.href} class:text-danger={roomState.playlist.info.tooSmall} target="_blank">
               {roomState.playlist.info.name} 
-              {#if roomState.playlist.info.numberOfValidSongs}
-                | {$_("lobby.playlistMessages.validSongs", { values: {number: roomState.playlist.info.numberOfValidSongs} })}
+              {#if roomState.playlist.info.numberOfValidSongsRemaining && roomState.playlist.info.totalNumberOfValidSongs}
+                | {$_("lobby.playlistMessages.validSongs", { values: {remaining: roomState.playlist.info.numberOfValidSongsRemaining, total: roomState.playlist.info.totalNumberOfValidSongs} })}
               {/if}
               
               {#if roomState.playlist.info.tooSmall}

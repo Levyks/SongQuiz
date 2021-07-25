@@ -23,7 +23,7 @@ class Round {
   }
 
   generateChoices(numberOfChoices) {
-    const numberOfValidSongs = this.game.playlist.tracks.length;
+    const numberOfValidSongs = this.room.playlist.tracks.length;
     
     //Generates an array of {numberOfChoices} unique indexes
     const choicesIndexes = [];
@@ -39,7 +39,7 @@ class Round {
     //Generates an array with the songs with the indexes previously generated
     this.choices = [];
     choicesIndexes.forEach(choiceIndex => {
-      const track = this.game.playlist.tracks[choiceIndex];
+      const track = this.room.playlist.tracks[choiceIndex];
 
       if(this.roundType === 'song') {
         this.choices.push(track.name);
@@ -48,7 +48,7 @@ class Round {
       }
     });
 
-    this.songToPlayUrl = this.game.playlist.tracks[this.correctChoiceIndex].preview_url;
+    this.songToPlayUrl = this.room.playlist.tracks[this.correctChoiceIndex].preview_url;
   }
 
   startRound() {
@@ -83,10 +83,10 @@ class Round {
     //Sorts the array
     this.playersThatGotItRight.sort((a, b) => a.score < b.score ? 1 : -1);
 
-    const trackThatJustPlayed = this.game.playlist.tracks[this.correctChoiceIndex];
+    const trackThatJustPlayed = this.room.playlist.tracks[this.correctChoiceIndex];
 
     //Remove song that was just played from the list of available songs in the game (so it does not repeat)
-    this.game.playlist.tracks.splice(this.correctChoiceIndex, 1);
+    this.room.playlist.tracks.splice(this.correctChoiceIndex, 1);
     
     //Schedules next round
     this.game.scheduleNextRound();

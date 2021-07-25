@@ -28,10 +28,14 @@
       "invite": "Invite friends"
     },
     "playlistMessages": {
-      "validSongs": "{number} valid songs",
+      "validSongs": "{remaining}/{total} remaining songs",
       "error": "Error: {error}",
       "notSet": "Playlist not set yet",
       "tooSmall": "The playlist is too small for the current number of rounds"
+    },
+    "resetPlaylist": {
+      "title": "Reset Playlist",
+      "confirmation": "Are you sure you want to reset the playlist? This will allow songs that were already on this room to be repeated"
     },
     "playlistUrlPlaceholder": "An Spotify® playlist URL",
     "button": {

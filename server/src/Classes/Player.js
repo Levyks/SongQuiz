@@ -19,6 +19,7 @@ class Player {
       this.room.currentlyConnectedPlayers -= 1;
       this.socket.removeAllListeners();
       this.socket.leave(this.room.code);
+      this.socket.disconnect();
       delete this.socket;
     } 
     

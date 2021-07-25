@@ -54,6 +54,7 @@ class Room {
   }
 
   getPlaylistWithoutTracks() {
+    if(!this.playlist) return this.playlist;
     const playlist = Object.assign({}, this.playlist);
     if(playlist.tracks) delete playlist.tracks;
     return playlist;
@@ -65,6 +66,7 @@ class Room {
     if(playlistUrl != this.playlistUrl) {
       this.playlistUrl = playlistUrl;
       this.playlist = undefined;
+      this.originalPlaylist = undefined;
 
       //Only run this if the URL is not an empty string
       if(playlistUrl) {
@@ -82,16 +84,17 @@ class Room {
 
           Spotify.getPlaylistTracks(playlistUrl).then(tracks => {
             this.playlist.tracks = tracks;
-            this.playlist.info.numberOfValidSongs = this.playlist.tracks.length;
+            this.playlist.info.totalNumberOfValidSongs = this.playlist.tracks.length;
+            this.playlist.info.numberOfValidSongsRemaining = this.playlist.tracks.length;
             this.playlist.info.tracksLoaded = true;
-            this.playlist.info.tooSmall = this.playlist.info.numberOfValidSongs < this.choicesPerRound + this.numberOfRounds - 1;
+            this.playlist.info.tooSmall = this.playlist.info.numberOfValidSongsRemaining < this.choicesPerRound + this.numberOfRounds - 1;
 
             this.sendSyncEvent({
               type: 'playlistUpdate',
               data: this.getPlaylistWithoutTracks()
             });
 
-            this.log(`Playlist tracks fetched, number of valid songs: ${this.playlist.info.numberOfValidSongs}`);
+            this.log(`Playlist tracks fetched, number of valid songs: ${this.playlist.info.numberOfValidSongsRemaining}`);
             if(this.playlist.info.tooSmall) this.log("Playlist is too small");
 
           });
@@ -128,10 +131,12 @@ class Room {
 
     //This code will run when this method is called without an URL (when the number of rounds update)
     } else {
-      if (this.playlist && this.playlist.info.numberOfValidSongs) {
-      this.playlist.info.tooSmall = this.playlist.info.numberOfValidSongs < this.choicesPerRound + this.numberOfRounds - 1; 
-      
-      this.log(`Number of rounds updated, the playlist is ${this.playlist.info.tooSmall ? 'too small' : 'big enough'}`);
+      if (this.playlist && this.playlist.info.numberOfValidSongsRemaining) {
+        this.playlist.info.numberOfValidSongsRemaining = this.playlist.tracks.length;
+
+        this.playlist.info.tooSmall = this.playlist.info.numberOfValidSongsRemaining < this.choicesPerRound + this.numberOfRounds - 1; 
+        
+        this.log(`Number of rounds updated, the playlist is ${this.playlist.info.tooSmall ? 'too small' : 'big enough'}`);
       }
 
       this.sendSyncEvent({
@@ -142,9 +147,16 @@ class Room {
 
   }
 
+  resetPlaylist() {
+    this.playlist = this.originalPlaylist;
+    this.originalPlaylist = undefined;
+    this.setPlaylist();
+  }
+
   setNumberOfRounds(numberOfRounds) {
     if(isNaN(numberOfRounds)) return;
     this.numberOfRounds = Math.max(1, Math.ceil(numberOfRounds));
+    this.setPlaylist();
     this.sendSyncEvent({
       type: 'numberOfRoundsUpdate',
       data: this.numberOfRounds
@@ -163,6 +175,7 @@ class Room {
 
   setLeaderListeners(socket = this.leader.socket){
     socket.on("setPlaylist", (playlistUrl) => {this.setPlaylist(playlistUrl)});
+    socket.on("resetPlaylist", () => {this.resetPlaylist()});
     socket.on("setNumberOfRounds", (numberOfRounds) => {this.setNumberOfRounds(numberOfRounds)});
     socket.on("setTimePerRound", (timePerRound) => {this.setTimePerRound(timePerRound)});
 
@@ -181,6 +194,7 @@ class Room {
       type: 'backToLobby'
     });
     this.syncPlayersData();
+    this.setPlaylist();
   }
 
   connectPlayer(data, socket) {
