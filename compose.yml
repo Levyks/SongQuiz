@@ -1,0 +1,12 @@
+version: "3.9"
+services:
+  songquiz:
+    container_name: songquiz
+    image:
+      build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - SPOTIFY_CLIENT_ID
+      - SPOTIFY_CLIENT_SECRET
